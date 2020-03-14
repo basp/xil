@@ -1,6 +1,6 @@
-import hashes, lists
+import math, hashes, lists, strutils, sequtils
 
-# const maxSetSize = 32
+const maxSetSize = 32
 
 type
   Value* = ref object of RootObj
@@ -93,30 +93,6 @@ method `==`*(a, b: List): bool =
     x = x.next
     y = y.next
 
-when isMainModule:
-  var a = cast[Value](newList(@[
-    cast[Value](newInt(1)),
-    cast[Value](newInt(2))]))
-  var b = cast[Value](newList(@[
-    cast[Value](newInt(1)),
-    cast[Value](newInt(2))]))
-  var c = cast[Value](newList(@[
-    cast[Value](newInt(1)),
-    cast[Value](newInt(2)),
-    cast[Value](newInt(3))]))
-  var d = cast[Value](newList(@[
-    cast[Value](newInt(2)),
-    cast[Value](newInt(1))]))
-  assert a == b
-  assert b == a
-  assert a != c
-  assert b != c
-  assert a != d
-  assert d != a
-  assert d == d
-  assert d != b
-  assert b != d
-
 template literalHash(t: untyped) =
   method hash*(a: t): Hash = hash(a.val)
 
@@ -131,44 +107,48 @@ literalHash(Set)
 literalHash(String)
 literalHash(Ident)
 
-when isMainModule:
-  a = cast[Value](newBool(true))
-  b = cast[Value](newBool(false))
-  assert hash(a) == hash(true)
-  assert hash(b) == hash(false)
-  a = cast[Value](newIdent("foo"))
-  b = cast[Value](newIdent("bar"))
-  assert hash(a) == hash("foo")
-  assert hash(b) == hash("bar")
-
 method cmp*(a: Value, b: Value): Int {.base.} =
   raiseRuntimeError("TILT cmp")
+
 method cmp*(a: Int, b: Int): Int =
   newInt(cmp(a.val, b.val))
+
 method cmp*(a: Int, b: Float): Int =
   newInt(cmp(a.val.float, b.val))
+
 method cmp*(a: Float, b: Int): Int =
   newInt(cmp(a.val, b.val.float))
+
 method cmp*(a: Bool, b: Bool): Int =
   newInt(cmp(a.val, b.val))
+
 method cmp*(a: Bool, b: Int): Int =
   newInt(cmp(ord(a.val), b.val))
+
 method cmp*(a: Int, b: Bool): Int =
   newInt(cmp(a.val, ord(b.val)))
+
 method cmp*(a: Bool, b: Char): Int =
   newInt(cmp(ord(a.val), ord(b.val)))
+
 method cmp*(a: Char, b: Bool): Int =
   newInt(cmp(ord(a.val), ord(b.val)))
+
 method cmp*(a: Char, b: Char): Int =
   newInt(cmp(a.val, b.val))
+
 method cmp*(a: Char, b: Int): Int =
   newInt(cmp(ord(a.val), b.val))
+
 method cmp*(a: Int, b: Char): Int =
   newInt(cmp(a.val, ord(b.val)))
+
 method cmp*(a: Set, b: Set): Int =
   newInt(cmp(a.val, b.val))
+
 method cmp*(a: String, b: String): Int =
   newInt(cmp(a.val, b.val))
+
 method cmp*(a, b: List): Int =
   var x = a.val.head
   var y = b.val.head
@@ -184,25 +164,196 @@ method cmp*(a, b: List): Int =
     y = y.next
   return newInt(0)
 
-when isMainModule:
-  a = cast[Value](newList(@[
-    cast[Value](newInt(1)),
-    cast[Value](newInt(2))]))
-  b = cast[Value](newList(@[
-    cast[Value](newInt(1)),
-    cast[Value](newInt(2))]))
-  c = cast[Value](newList(@[
-    cast[Value](newInt(1)),
-    cast[Value](newInt(2)),
-    cast[Value](newInt(3))]))
-  d = cast[Value](newList(@[
-    cast[Value](newInt(2)),
-    cast[Value](newInt(1))]))
-  assert cmp(a, b) == newInt(0)
-  assert cmp(b, a) == newInt(0)
-  assert cmp(a, c) == newInt(-1)
-  assert cmp(c, a) == newInt(1)
-  assert cmp(a, a) == newInt(0)
-  assert cmp(a, d) == newInt(-1)
-  assert cmp(d, a) == newInt(1)
+template literalClone*(t: untyped, ctor: untyped) =
+  method clone*(x: t): Value =
+    ctor(x.val)
+
+method clone*(self: Value): Value {.base.} = self
+
+literalClone(Bool, newBool)
+literalClone(Char, newChar)
+literalClone(Int, newInt)
+literalClone(Float, newFloat)
+literalClone(String, newString)
+literalClone(Set, newSet)
+literalClone(Ident, newIdent)
+
+method clone*(self: List): Value =
+  var xs = initSinglyLinkedList[Value]()
+  for x in self.val:
+    xs.append(x.clone())
+  newList(xs)
+
+proc add*(a: Set, x: int) =
+  a.val = a.val or (1 shl x)
+
+proc add*(a: Set, x: Int) =
+  a.add(x.val)
+
+proc add*(a: List, x: Value) =
+  a.val.append(x)
+
+proc delete*(a: Set, x: int) =
+  a.val = a.val and not (1 shl x)
+
+proc contains*(a: Set, x: int): bool =
+  (a.val and (1 shl x)) > 0
+
+proc contains*(a: Set, x: Int): bool =
+  a.contains(x.val)
+
+proc contains*(a: List, x: Value): bool =
+  a.val.contains(x)
+
+iterator items*(a: String): char =
+  for c in a.val:
+    yield c
+
+iterator items*(a: Set): int =
+  for x in 0..<maxSetSize:
+    if a.contains(x):
+      yield x
+
+iterator items*(a: List): Value =
+  var node = a.val.head
+  while node != nil:
+    yield node.value
+    node = node.next
+
+method `$`*(a: Value): string {.base} = repr(a)
+
+template literalStr(t: untyped) =
+  method `$`*(a: t): string = $a.val
+
+literalStr(Bool)
+literalStr(Int)
+literalStr(Float)
+literalStr(List)
+
+method `$`*(a: Char): string = repr(a.val)
+method `$`*(a: String): string = escape(a.val)
+method `$`*(a: Set): string = "{" & join(toSeq(items(a)), " ") & "}"
+
+template unFloatOp(name: string, op: untyped, fn: untyped) =
+  method op*(a: Value): Value {.base.} =
+    raiseRuntimeError("badarg for `" & name & "`")
   
+  method op*(a: Int): Value  =
+    newFloat(fn(a.val.float))
+  
+  method op*(a: Float): Value =
+    newFloat(fn(a.val))
+
+template biFloatOp(name: string, op: untyped, fn: untyped, ctor: untyped) =
+  method op*(a: Value, b: Value): Value {.base.} =
+    raiseRuntimeError("badargs for `" & name & "`")
+  
+  method op*(a: Int, b: Int): Value =
+    ctor(fn(a.val, b.val))
+  
+  method op*(a: Int, b: Float): Value  =
+    newFloat(fn(a.val.float, b.val))
+  
+  method op*(a: Float, b: Int): Value =
+    newFloat(fn(a.val, b.val.float))
+  
+  method op*(a: Float, b: Float): Value =
+    newFloat(fn(a.val, b.val))
+
+template biLogicOp(name: string, op: untyped) =
+  method op*(a: Value, b: Value): Value {.base.} =
+    raiseRuntimeError("badargs for `" & name & "`")
+  
+  method op*(a: Bool, b: Bool): Value =
+    newBool(op(a.val, b.val))
+  
+  method op*(a: Set, b: Set): Value =
+    newSet(op(a.val, b.val))
+
+unFloatOp("acos", acos, arcsin)
+unFloatOp("asin", asin, arcsin)
+unFloatOp("atan", atan, arctan)
+unFloatOp("cos", cos, cos)
+unFloatOp("sin", sin, sin)
+unFloatOp("tan", tan, tan)
+unFloatOp("cosh", cosh, cosh)
+unFloatOp("sinh", sinh, sinh)
+unFloatOp("tanh", tanh, tanh)
+unFloatOp("exp", exp, exp)
+unFloatOp("sqrt", sqrt, sqrt)
+
+biFloatOp("+", `+`, `+`): newInt
+biFloatOp("-", `-`, `-`): newInt
+biFloatOp("*", `*`, `*`): newInt
+biFloatOp("/", `/`, `/`): newFloat
+biFloatOp("rem", `rem`, `mod`): newInt
+
+biLogicOp("and", `and`)
+biLogicOp("or", `or`)
+biLogicOp("xor", `xor`)
+
+method size*(x: Value): Value {.base.} =
+  raiseRuntimeError("badargs for `size`")
+
+method size*(x: List): Value =
+  var count = 0
+  var next = x.val.head
+  while next != nil:
+    inc(count)
+    next = next.next
+  newInt(count)
+
+method size*(x: Set): Value =
+  # Brian Kernighan’s algorithm for
+  # counting the number of set bits
+  var n = x.val
+  var count = 0
+  while n > 0:
+    n = n and (n - 1)
+    inc(count)
+  newInt(count)
+method size*(x: String): Value =
+  newInt(len(x.val))
+
+method cons*(x: Value, a: Value): Value {.base.} =
+  raiseRuntimeError("badargs for `cons`")
+
+method cons*(x: Value, a: List): Value =
+  var b = newList(a.val)
+  b.val.prepend(x)
+  return b
+
+method cons*(x: Char, a: String): Value =
+  var b = newString(a.val)
+  b.val.insert($x.val)
+  return b
+
+method cons*(x: Int, a: Set): Value =
+  var b = newSet(a.val)
+  b.add(x)
+  return b
+
+method first*(a: Value): Value {.base.} = 
+  raiseRuntimeError("badarg for `first`")
+
+method first*(a: String): Value = 
+  newChar(a.val[0])
+
+method first*(a: Set): Value =
+  newInt(toSeq(items(a))[0])
+
+method first*(a: List): Value =
+  toSeq(items(a))[0]
+
+method rest*(a: Value): Value {.base.} =
+  raiseRuntimeError("badarg for `rest`")
+
+method rest*(a: List): Value =
+  var list = initSinglyLinkedList[Value]()
+  list.head = a.val.head.next
+  newList(list)
+
+method rest*(a: Set): Value =
+  let first = toSeq(items(a))[0]
+  a.delete(first)
+  return a
