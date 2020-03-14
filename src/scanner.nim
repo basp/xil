@@ -20,11 +20,15 @@ type
     kind*: TokenKind
     lexeme*: string
     pos*: int
-  Scanner* = ref object
+  Scanner = ref object
     src: string
     pos: int
     readPos: int
     ch: char
+  SyntaxException* = object of Exception
+
+proc raiseSyntaxException*(msg: string) =
+  raise newException(SyntaxException, msg)
 
 proc initToken(kind: TokenKind, lexeme: string, pos: int): Token =
   result.kind = kind
@@ -86,7 +90,7 @@ proc readUntil(s: Scanner, fin: char, name: string): string =
     s.advance()
   if s.ch != fin:
     let msg = fmt"unterminated {name} literal (pos: {pos})"
-    raise newException(Exception, msg)
+    raiseSyntaxException(msg)
   s.advance()
   s.src[pos..<s.pos]
 

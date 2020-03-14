@@ -1,4 +1,4 @@
-import scan
+import scanner
 
 while true:
   let src = stdin.readLine()
