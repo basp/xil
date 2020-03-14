@@ -84,13 +84,30 @@ proc readNumber(s: Scanner): string =
   s.src[pos..<s.pos]
 
 proc readUntil(s: Scanner, fin: char, name: string): string =
+  # We're at the start of a *span* token that
+  # goes from the current char to the `fin` char.
+  # We'll mark our position and move on.
   let pos = s.pos
   s.advance()
+
+  # Now we just advance until we find `fin` or
+  # until we can go no further.
   while s.ch != fin and s.ch != char(0):
     s.advance()
+
+  # At this point we expect the current character
+  # to be `fin`, if it isn't then the there is
+  # a syntax error.
   if s.ch != fin:
     let msg = fmt"unterminated {name} literal (pos: {pos})"
     raiseSyntaxException(msg)
+
+  # Make sure we are actually at fin.
+  assert s.ch == fin
+
+  # Now that we have arrived at `fin` we'll just 
+  # consume that as well and return the span that
+  # includes the (invisible) start and `fin` chars.
   s.advance()
   s.src[pos..<s.pos]
 
