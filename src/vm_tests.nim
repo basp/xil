@@ -81,3 +81,18 @@ when isMainModule:
     assert size(q) == newInt(2)
     q = cons(newInt(3), q)
     assert size(q) == newInt(3)
+
+  block:
+    var tests = @[
+      (cast[Value](newInt(0)), true),
+      (newInt(1), false),
+      (newBool(true), false),
+      (newBool(false), true),
+      (newString(""), true),
+      (newString("foo"), false),
+      (newChar(char(0)), true),
+      (newChar('a'), false),
+      (newList(), true)]
+      
+    for (x, exp) in tests:
+      assert null(x) == exp

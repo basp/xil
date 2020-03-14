@@ -65,6 +65,15 @@ proc newUsr*(id: Ident, term: seq[Value]): Usr =
 proc newUsr*(id: Ident, term: List): Usr =
   Usr(id: id, term: term)
 
+method null*(x: Value): bool {.base.} = false
+method null*(x: Bool): bool = x.val == false
+method null*(x: Char): bool = x.val == char(0)
+method null*(x: Int): bool = x.val == 0
+method null*(x: String): bool = len(x.val) == 0
+method null*(x: Set): bool = x.val == 0
+method null*(x: List): bool = x.val.head == nil
+method null*(x: Ident): bool = false
+
 template literalEq(t: untyped) =
   method `==`*(a, b: t): bool = a.val == b.val
 
@@ -336,6 +345,8 @@ method cons*(x: Int, a: Set): Value =
 method first*(a: Value): Value {.base.} = 
   raiseRuntimeError("badarg for `first`")
 
+# TODO: the `first` methods can use
+# some more work
 method first*(a: String): Value = 
   newChar(a.val[0])
 
@@ -357,3 +368,4 @@ method rest*(a: Set): Value =
   let first = toSeq(items(a))[0]
   a.delete(first)
   return a
+
