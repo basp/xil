@@ -65,6 +65,15 @@ proc newUsr*(id: Ident, term: seq[Value]): Usr =
 proc newUsr*(id: Ident, term: List): Usr =
   Usr(id: id, term: term)
 
+method isThruthy*(x: Value): bool {.base, inline.} = false
+method isThruthy*(x: Int): bool {.inline.} = x.val != 0
+method isThruthy*(x: Float): bool {.inline.} = x.val != 0
+method isThruthy*(x: String): bool {.inline.} = len(x.val) > 0
+method isThruthy*(x: Bool): bool {.inline.} = x.val
+method isThruthy*(x: List): bool {.inline.} = x.val.head != nil
+method isThruthy*(x: Set): bool {.inline.} = x.val > 0
+method isThruthy*(x: Char): bool {.inline.} = ord(x.val) > 0
+
 method null*(x: Value): bool {.base.} = false
 method null*(x: Bool): bool = x.val == false
 method null*(x: Char): bool = x.val == char(0)
@@ -238,6 +247,7 @@ literalStr(Bool)
 literalStr(Int)
 literalStr(Float)
 literalStr(List)
+literalStr(Ident)
 
 method `$`*(a: Char): string = repr(a.val)
 method `$`*(a: String): string = escape(a.val)

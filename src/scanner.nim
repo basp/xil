@@ -20,7 +20,7 @@ type
     kind*: TokenKind
     lexeme*: string
     pos*: int
-  Scanner = ref object
+  Scanner* = ref object
     src: string
     pos: int
     readPos: int
