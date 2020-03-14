@@ -92,7 +92,15 @@ when isMainModule:
       (newString("foo"), false),
       (newChar(char(0)), true),
       (newChar('a'), false),
-      (newList(), true)]
-      
+      (newList(), true)]      
     for (x, exp) in tests:
       assert null(x) == exp
+
+  block:
+    var s = cast[Value](newSet(0))
+    s = cons(newInt(1), s)
+    s = cons(newInt(2), s)
+    s = cons(newInt(3), s)
+    assert s.first == newInt(1)
+    assert s.rest.first == newInt(2)
+    assert s.rest.rest.first == newInt(3)

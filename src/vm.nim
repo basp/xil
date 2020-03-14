@@ -345,27 +345,40 @@ method cons*(x: Int, a: Set): Value =
 method first*(a: Value): Value {.base.} = 
   raiseRuntimeError("badarg for `first`")
 
-# TODO: the `first` methods can use
-# some more work
 method first*(a: String): Value = 
+  if len(a.val) == 0:
+    raiseRuntimeError("empty string is invalid for `first`")
   newChar(a.val[0])
 
 method first*(a: Set): Value =
-  newInt(toSeq(items(a))[0])
+  for i in 0..<maxSetSize:
+    if (a.val and (1 shl i)) > 0:
+      return newInt(i)
+  raiseRuntimeError("empty set is invalid for `first`")
 
 method first*(a: List): Value =
-  toSeq(items(a))[0]
+  if a.val.head == nil:
+    raiseRuntimeError("empty list is invalid for `first`")
+  a.val.head.value
 
 method rest*(a: Value): Value {.base.} =
   raiseRuntimeError("badarg for `rest`")
 
+method rest*(a: String): Value =
+  if len(a.val) == 0:
+    return newString("")
+  newString(a.val.substr(1))
+
 method rest*(a: List): Value =
   var list = initSinglyLinkedList[Value]()
+  if a.val.head == nil:
+    return newList()
   list.head = a.val.head.next
   newList(list)
 
 method rest*(a: Set): Value =
-  let first = toSeq(items(a))[0]
-  a.delete(first)
-  return a
-
+  if a.val == 0:
+    return newSet(0)
+  let first = cast[Int](first(a))
+  let val = a.val and not (1 shl first.val)
+  newSet(val)
