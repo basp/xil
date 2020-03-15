@@ -307,6 +307,92 @@ biFloatOp("*", `*`, `*`): newInt
 biFloatOp("/", `/`, `/`): newFloat
 biFloatOp("rem", `rem`, `mod`): newInt
 
+method `div`*(a: Value, b: Value): (Value, Value) {.base, inline.} =
+  raiseRuntimeError("badarg for `div` " & repr(a))
+method `div`*(a: Int, b: Int): (Value, Value) {.inline.} =
+  let q = a.val div b.val
+  let rem = a.val mod b.val
+  (newInt(q), newInt(rem))
+
+method sign*(a: Value): Value {.base, inline.} =
+  raiseRuntimeError("badarg for `sign` " & repr(a))
+method sign*(a: Int): Value {.inline.} =
+  newInt(sgn[int](a.val))
+method sign*(a: Float): Value {.inline.} =
+  newfloat(sgn[float](a.val).float)
+
+method neg*(a: Value): Value {.base, inline.} =
+  raiseRuntimeError("badarg for `neg` " & repr(a))
+method neg*(a: Int): Value {.inline.} =
+  newInt(-a.val)
+method neg*(a: Float): Value {.inline.} =
+  newFloat(-a.val)
+
+method abs*(a: Value): Value {.base, inline.} =
+  raiseRuntimeError("badarg for `abs` " & repr(a))
+method abs*(a: Int): Value {.inline.} =
+  newInt(abs(a.val))
+method abs*(a: Float): Value {.inline.} =
+  newFloat(abs(a.val))
+
+method ord*(a: Value): Int {.base, inline.} =
+  raiseRuntimeError("badarg for `ord` " & repr(a))
+method ord*(a: Char): Int {.inline.} =
+  newInt(ord(a.val))
+method ord*(a: Int): Int {.inline.} =
+  newInt(ord(a.val))
+method ord*(a: Bool): Int {.inline.} =
+  newInt(ord(a.val))
+
+method chr*(a: Value): Value {.base, inline.} =
+  raiseRuntimeError("badarg for `chr` " & repr(a))
+method chr*(a: Char): Value {.inline.} =
+  newChar(chr(ord(a.val)))
+method chr*(a: Int): Value {.inline.} =
+  newChar(chr(a.val))
+method chr*(a: Bool): Value {.inline.} =
+  newChar(chr(ord(a.val)))
+
+method pred*(a: Value): Value {.base, inline.} =
+  raiseRuntimeError("badarg for `pred` " & repr(a))
+method pred*(a: Bool): Value {.inline.} =
+  newBool(pred(a.val))
+method pred*(a: Char): Value {.inline.} =
+  newChar(pred(a.val))
+method pred*(a: Int): Value {.inline.} =
+  newInt(pred(a.val))
+
+method succ*(a: Value): Value {.base, inline.} =
+  raiseRuntimeError("badarg for `succ` " & repr(a))
+method succ*(a: Bool): Value {.inline.} =
+  newBool(succ(a.val))
+method succ*(a: Char): Value {.inline.} =
+  newChar(succ(a.val))
+method succ*(a: Int): Value {.inline.} =
+  newInt(succ(a.val))
+
+method max*(a: Value, b: Value): Value {.base, inline.} =
+  raiseRuntimeError("badarg for `max` " & repr(a))
+method max*(a: Int, b: Int): Value {.inline.} =
+  newInt(max(a.val, b.val))
+method max*(a: Float, b: Int): Value {.inline.} =
+  newFloat(max(a.val, b.val.float))
+method max*(a: Int, b: Float): Value {.inline.} =
+  newFloat(max(a.val.float, b.val))
+method max*(a: Float, b: Float): Value {.inline.} =
+  newFloat(max(a.val, b.val))
+
+method min*(a: Value, b: Value): Value {.base, inline.} =
+  raiseRuntimeError("badarg for `min` " & repr(a))
+method min*(a: Int, b: Int): Value {.inline.} =
+  newInt(min(a.val, b.val))
+method min*(a: Float, b: Int): Value {.inline.} =
+  newFloat(min(a.val, b.val.float))
+method min*(a: Int, b: Float): Value {.inline.} =
+  newFloat(min(a.val.float, b.val))
+method min*(a: Float, b: Float): Value {.inline.} =
+  newFloat(min(a.val, b.val))
+
 biLogicOp("and", `and`)
 biLogicOp("or", `or`)
 biLogicOp("xor", `xor`)
@@ -314,7 +400,7 @@ biLogicOp("xor", `xor`)
 proc `not`*(x: Value): Value = newBool(not isThruthy(x))
 
 method size*(x: Value): Value {.base.} =
-  raiseRuntimeError("badargs for `size`")
+  raiseRuntimeError("badarg for `size` " & repr(x))
 
 method size*(x: List): Value =
   var count = 0
@@ -374,7 +460,7 @@ method first*(a: List): Value =
   a.val.head.value
 
 method rest*(a: Value): Value {.base.} =
-  raiseRuntimeError("badarg for `rest`")
+  raiseRuntimeError("badarg for `rest` " & repr(a))
 
 method rest*(a: String): Value =
   if len(a.val) == 0:
@@ -394,3 +480,22 @@ method rest*(a: Set): Value =
   let first = cast[Int](first(a))
   let val = a.val and not (1 shl first.val)
   newSet(val)
+
+method uncons*(a: Value): (Value, Value) {.base.} =
+  raiseRuntimeError("badarg for `uncons` " & repr(a))
+
+method uncons*(a: List): (Value, Value) =
+  (a.first, a.rest)
+
+method at*(a: Value, i: int): Value {.base.} =
+  raiseRuntimeError("badarg for `at` " & repr(a))
+
+method at*(a: List, i: int): Value =
+  var p = 0
+  var next = a.val.head
+  while p < i: 
+    next = next.next
+    if next == nil:
+      raiseRuntimeError("index out of range")
+    inc(p)
+  next.value

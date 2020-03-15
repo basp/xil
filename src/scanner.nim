@@ -35,6 +35,12 @@ proc initToken(kind: TokenKind, lexeme: string, pos: int): Token =
   result.lexeme = lexeme
   result.pos = pos
 
+proc peek(s: Scanner): char =
+  if s.readPos + 1 >= len(s.src):
+    char(0)
+  else:
+    s.src[s.readPos + 1]
+
 proc advance(s: Scanner) =
   if s.readPos >= len(s.src):
     s.ch = char(0)
@@ -140,7 +146,7 @@ proc next*(s: Scanner): Token =
     result.kind = tkEOF
     return
   else:
-    if isDigit(s.ch) or s.ch == '-':
+    if isDigit(s.ch) or (s.ch == '-' and isDigit(s.peek())):
       result.pos = s.pos
       result.lexeme = s.readNumber()
       result.kind = tkNumber
@@ -152,7 +158,10 @@ proc next*(s: Scanner): Token =
   s.advance()
 
 when isMainModule:
-  let src = "'foo' \"bar\" 123 [] quux 123.56 true false"
+  let src = """
+    'foo' "bar" 123 [] quux 
+    123.56 true false -123 
+    -123.456"""
   let tests = [
     (tkChar, "'foo'"),
     (tkString, "\"bar\""),
@@ -162,9 +171,9 @@ when isMainModule:
     (tkIdent, "quux"),
     (tkNumber, "123.56"),
     (tkIdent, "true"),
-    (tkIdent, "false")
-  ]
-
+    (tkIdent, "false"),
+    (tkNumber, "-123"),
+    (tkNumber, "-123.456")]
   var tok: Token
   let scanner = newScanner(src)
   for (kind, lexeme) in tests:

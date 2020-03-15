@@ -1,4 +1,4 @@
-import lists, opnames, vm
+import lists, strformat, opnames, vm
 
 var 
   stack* = initSinglyLinkedList[Value]()
@@ -28,12 +28,6 @@ proc pop(): Value {.inline.} =
 proc peek(): Value {.inline.} =
   stack.head.value
 
-# proc popt[T](): T {.inline.} = 
-#   cast[T](pop())
-
-# proc peekt[T](): T {.inline.} = 
-#   cast[T](peek())
-
 method numeric(x: Value): bool {.base,inline.} = false
 method numeric(x: Int): bool {.inline.} = true
 method numeric(x: Float): bool {.inline.} = true
@@ -58,73 +52,128 @@ method aggregate(x: String): bool {.inline.} = true
 method list(x: Value): bool {.base,inline.} = false
 method list(x: List): bool {.inline.} = true
 
-proc oneParameter(name: string) {.inline.} =
-  doAssert stack.head != nil, name
+proc raiseExecError(msg, name: string) =
+  raiseRuntimeError(fmt"{msg} needed for `{name}`")
 
-proc twoParameters(name: string) {.inline.} =
-  oneParameter(name)
-  doAssert stack.head.next != nil, name
+proc oneParameter(name: string) =
+  const msg = "one parameter"
+  if stack.head == nil:
+    raiseExecError(msg, name)
 
-proc threeParameters(name: string) {.inline.} =
-  twoParameters(name)
-  doAssert stack.head.next.next != nil, name
+proc twoParameters(name: string) =
+  const msg = "two parameters"
+  if stack.head == nil:
+    raiseExecError(msg, name)
+  if stack.head.next == nil:
+    raiseExecError(msg, name)
 
-proc fourParameters(name: string) {.inline.} =
-  threeParameters(name)
-  doAssert stack.head.next.next.next != nil, name
+proc threeParameters(name: string) =
+  const msg = "three parameters"
+  if stack.head == nil:
+    raiseExecError(msg, name)
+  if stack.head.next == nil:
+    raiseExecError(msg, name)
+  if stack.head.next.next == nil:
+    raiseExecError(msg, name)
 
-proc fiveParameters(name: string) {.inline.} =
-  fourParameters(name)
-  doAssert stack.head.next.next.next.next != nil, name
+proc fourParameters(name: string) =
+  const msg = "four parameters"
+  if stack.head == nil:
+    raiseExecError(msg, name)
+  if stack.head.next == nil:
+    raiseExecError(msg, name)
+  if stack.head.next.next == nil:
+    raiseExecError(msg, name)
+  if stack.head.next.next.next == nil:
+    raiseExecError(msg, name)
 
-proc integer(name: string) {.inline.} =
-  doAssert stack.head.value.integer
+proc fiveParameters(name: string) =
+  const msg = "five parameters"
+  if stack.head == nil:
+    raiseExecError(msg, name)
+  if stack.head.next == nil:
+    raiseExecError(msg, name)
+  if stack.head.next.next == nil:
+    raiseExecError(msg, name)
+  if stack.head.next.next.next == nil:
+    raiseExecError(msg, name)
+  if stack.head.next.next.next.next == nil:
+    raiseExecError(msg, name)
 
-proc integerAsSecond(name: string) {.inline.} =
-  doAssert stack.head.next.value.integer
+proc integerOnTop(name: string) =
+  const msg = "integer on top"
+  if not integer(stack.head.value):
+    raiseExecError(msg, name)
 
-proc twoIntegers(name: string) {.inline.} =
-  doAssert stack.head.value.integer, name
-  doAssert stack.head.next.value.integer, name
+proc integerAsSecond(name: string) =
+  const msg = "integer as second parameter"
+  if not integer(stack.head.next.value):
+    raiseExecError(msg, name)
 
-proc integerOrFloat(name: string) {.inline.} =
-  doAssert stack.head.value.numeric, name
+proc twoIntegers(name: string) =
+  const msg = "two integers"
+  if not integer(stack.head.value):
+    raiseExecError(msg, name)
+  if not integer(stack.head.next.value):
+    raiseExecError(msg, name)
 
-proc integerOrFloatAsSecond(name: string) {.inline.} =
-  doAssert stack.head.next.value.numeric, name
+proc ordinalOnTop(name: string) =
+  const msg = "ordinal on top"
+  if not ordinal(stack.head.value):
+    raiseExecError(msg, name)
 
-proc logical(name: string) {.inline.} =
-  doAssert stack.head.value.logical, name
+proc listAsSecond(name: auto) =
+  const msg = "list as second parameter"
+  if not list(stack.head.next.value):
+    raiseExecError(msg, name)
 
-proc logicalAsSecond(name: string) {.inline.} =
-  doAssert stack.head.next.value.logical, name
+proc quoteOnTop(name: string) =
+  const msg = "quotation on top"
+  if not list(stack.head.value):
+    raiseExecError(msg, name)
 
-proc ordinal(name: string) {.inline.} =
-  doAssert stack.head.value.ordinal, name
+proc oneQuote(name: auto) = quoteOnTop(name)
 
-proc aggregate(name: string) {.inline.} =
-  doAssert stack.head.value.aggregate, name
+proc aggregateOnTop(name: string) =
+  const msg = "aggregate on top"
+  if not aggregate(stack.head.value):
+    raiseExecError(msg, name)
 
-proc aggregateAsSecond(name: string) {.inline.} =
-  doAssert stack.head.next.value.aggregate
+proc aggregateAsSecond(name: string) =
+  const msg = "aggregate as second parameter"
+  if not aggregate(stack.head.next.value):
+    raiseExecError(msg, name)
 
-proc listAsSecond(name: string) {.inline.} =
-  doAssert stack.head.next.value.list
+proc nonEmptyAggregate(name: string) =
+  const msg = "non-empty aggregate"
+  if not aggregate(stack.head.value):
+    raiseExecError(msg, name)
+  if stack.head.next == nil:
+    raiseExecError(msg, name)
 
-proc oneQuote(name: string) {.inline.} =
-  doAssert stack.head.value.list, name
+proc numericOnTop(name: string) =
+  const msg = "numeric on top"
+  if not numeric(stack.head.value):
+    raiseExecError(msg, name)
 
-proc twoQuotes(name: string) {.inline.} =
-  oneQuote(name)
-  doAssert stack.head.next.value.list, name
+proc twoNumerics(name: string) =
+  const msg = "two numerics"
+  if not numeric(stack.head.value):
+    raiseExecError(msg, name)
+  if not numeric(stack.head.next.value):
+    raiseExecError(msg, name)
 
-proc threeQuotes(name: string) {.inline.} =
-  twoQuotes(name)
-  doAssert stack.head.next.next.value.list, name
+proc logicalOnTop(name: string) =
+  const msg = "logical on top"
+  if not logical(stack.head.value):
+    raiseExecError(msg, name)
 
-proc fourQuotes(name: string) {.inline.} =
-  threeQuotes(name)
-  doAssert stack.head.next.next.next.value.list, name
+proc twoLogicals(name: string) =
+  const msg = "two logicals"
+  if not logical(stack.head.value):
+    raiseExecError(msg, name)
+  if not logical(stack.head.next.value):
+    raiseExecError(msg, name)
 
 template unary(op: untyped, name: string) =
   let x = pop()
@@ -137,35 +186,28 @@ template binary(op: untyped, name: string) =
 
 template unFloatOp(op: untyped, name: string) =
   oneParameter(name)
-  integerOrFloat(name)
+  numericOnTop(name)
   unary(op, name)
 
 template biFloatOp(op: untyped, name: string) =
   twoParameters(name)
-  integerOrFloat(name)
-  integerOrFloatAsSecond(name)
+  twoNumerics(name)
   binary(op, name)
 
 template biLogicalOp(op: untyped, name: string) =
   twoParameters(name)
-  logical(name)
-  logicalAsSecond(name)
+  twoLogicals(name)
   binary(op, name)
 
-# .. X Y Z  ->  .. X Y Z [Z Y X ..]
-# Pushes the stack as a list.
 proc opStack(name: auto) =
   push(newList(stack))
 
-# Identity function, does nothing.
-# Any program of the form  P id Q  is equivalent to just  P Q.
 proc opId() {.inline.} = discard
 
 proc opDup(name: auto) {.inline.} = 
   oneParameter(name)
   push(peek().clone)
 
-# X Y  ->  Y X
 proc opSwap(name: auto) {.inline.} =
   twoParameters(name)
   saved = stack
@@ -173,7 +215,6 @@ proc opSwap(name: auto) {.inline.} =
   push(saved1.value)
   push(saved2.value)
 
-# X Y Z  ->  Z X Y
 proc opRollup(name: auto) {.inline.} =
   threeParameters(name)
   saved = stack
@@ -182,7 +223,6 @@ proc opRollup(name: auto) {.inline.} =
   push(saved3.value)
   push(saved2.value)
 
-# X Y Z  ->  Y Z X
 proc opRolldown(name: auto) {.inline.} =
   threeParameters(name)
   saved = stack
@@ -191,7 +231,6 @@ proc opRolldown(name: auto) {.inline.} =
   push(saved1.value)
   push(saved3.value)
 
-# X Y Z  ->  Z Y X
 proc opRotate(name: auto) {.inline.} =
   threeParameters(name)
   saved = stack
@@ -225,7 +264,7 @@ proc opAnd(name: auto) {.inline.} = biLogicalOp(`and`, name)
 
 proc opNot(name: auto) {.inline.} =
   oneParameter(name)
-  logical(name)
+  logicalOnTop(name)
   unary(`not`, name) 
   
 proc opAdd(name: auto) {.inline.} = biFloatOp(`+`, name)
@@ -233,35 +272,36 @@ proc opSub(name: auto) {.inline.} = biFloatOp(`-`, name)
 proc opMul(name: auto) {.inline.} = biFloatOp(`*`, name)
 proc opDivide(name: auto) {.inline.} = biFloatOp(`/`, name)
 
-# proc opRem(name: auto) {.inline.} = bifloatop(`mod`, name)
+proc opRem(name: auto) {.inline.} = biFloatOp(`rem`, name)
 
-# proc opDiv(name: auto) {.inline.} =
-#   twoParameters(name)
-#   twoIntegers(name)
-#   let j = cast[Int](pop())
-#   let i = cast[Int](pop())
-#   let (k, l) = `div`(i, j)
-#   push(k)
-#   push(l)
+proc opDiv(name: auto) {.inline.} =
+  twoParameters(name)
+  twoIntegers(name)
+  let j = cast[Int](pop())
+  let i = cast[Int](pop())
+  let (k, l) = `div`(i, j)
+  push(k)
+  push(l)
 
-# proc opSign(name: auto) {.inline.} = unfloatop(sign, name)
-# proc opNeg(name: auto) {.inline.} =
-#   let x = pop()
-#   push(neg(x))
+proc opSign(name: auto) {.inline.} = unFloatOp(sign, name)
 
-# template unordop(op: untyped, name: auto) =
-#   oneParameter(name)
-#   ordinal(name)
-#   let x = pop()
-#   push(op(x))
+proc opNeg(name: auto) {.inline.} =
+  let x = pop()
+  push(neg(x))
 
-# proc opOrd(name: auto) {.inline.} = unordop(ord, name)
-# proc opChr(name: auto) {.inline.} = unordop(chr, name)
+template unOrdinalOp(op: untyped, name: auto) =
+  oneParameter(name)
+  ordinalOnTop(name)
+  let x = pop()
+  push(op(x))
 
-# proc opAbs(name: auto) {.inline.} = unfloatop(abs, name)
+proc opOrd(name: auto) {.inline.} = unOrdinalOp(ord, name)
+proc opChr(name: auto) {.inline.} = unOrdinalOp(chr, name)
 
-# proc opMin(name: auto) {.inline.} = bifloatop(min, name)
-# proc opMax(name: auto) {.inline.} = bifloatop(max, name)
+proc opAbs(name: auto) {.inline.} = unfloatop(abs, name)
+
+proc opMin(name: auto) {.inline.} = bifloatop(min, name)
+proc opMax(name: auto) {.inline.} = bifloatop(max, name)
 
 proc opSqrt(name: auto) {.inline.} = unfloatop(sqrt, name)
 proc opSin(name: auto) {.inline.} = unfloatop(sin, name)
@@ -274,8 +314,8 @@ proc opSinh(name: auto) {.inline.} = unfloatop(sinh, name)
 proc opCosh(name: auto) {.inline.} = unfloatop(cosh, name)
 proc opTanh(name: auto) {.inline.} = unfloatop(tanh, name)
 
-# proc opPred(name: auto) {.inline.} = unordop(pred, name)
-# proc opSucc(name: auto) {.inline.} = unordop(succ, name)
+proc opPred(name: auto) {.inline.} = unOrdinalOp(pred, name)
+proc opSucc(name: auto) {.inline.} = unOrdinalOp(succ, name)
 
 proc opPut(name: auto) {.inline.} =
   oneParameter(name)
@@ -287,7 +327,7 @@ proc opPeek(name: string) {.inline.} =
 
 proc opCons(name: auto) {.inline.} =
   twoParameters(name)
-  aggregate(name)
+  aggregateOnTop(name)
   binary(cons, name)
   
 proc opSwons(name: auto) {.inline.} =
@@ -296,86 +336,86 @@ proc opSwons(name: auto) {.inline.} =
 
 proc opFirst(name: auto) {.inline.} =
   oneParameter(name)
-  aggregate(name)
+  nonEmptyAggregate(name)
   let a = pop()
   push(first(a))
 
 proc opRest(name: auto) {.inline.} =
   oneParameter(name)
-  aggregate(name)
+  aggregateOnTop(name)
   let a = pop()
   push(rest(a))
 
-# template indexop(name: auto) =
-#   let i = cast[Int](pop())
-#   let a = pop()
-#   push(at(a, i))
+template indexOp(name: auto) =
+  let i = cast[Int](pop())
+  let a = pop()
+  push(at(a, i.val))
 
-# proc opAt(name: auto) {.inline.} =
-#   twoParameters(name)
-#   integer(name)
-#   aggregateAsSecond(name)
-#   indexop(name)
+proc opAt(name: auto) {.inline.} =
+  twoParameters(name)
+  integerOnTop(name)
+  aggregateAsSecond(name)
+  indexOp(name)
 
-# proc opOf(name: auto) {.inline.} =
-#   twoParameters(name)
-#   aggregate(name)
-#   integerAsSecond(name)
-#   opSwap(name)
-#   indexop(name)
+proc opOf(name: auto) {.inline.} =
+  twoParameters(name)
+  aggregateOnTop(name)
+  integerAsSecond(name)
+  opSwap(name)
+  indexOp(name)
 
 proc opSize(name: auto) {.inline.} =
   oneParameter(name)
-  aggregate(name)
+  aggregateOnTop(name)
   let a = pop()
   push(size(a))
 
-# proc popuncons(name: auto): (Value, Value) {.inline.} =
-#   oneParameter(name)
-#   aggregate(name)
-#   let a = pop()
-#   uncons(a)
+proc popUncons(name: auto): (Value, Value) {.inline.} =
+  oneParameter(name)
+  aggregateOnTop(name)
+  let a = pop()
+  uncons(a)
 
-# proc opUncons(name: auto) {.inline.} =
-#   let (first, rest) = popuncons(name)
-#   push(first)
-#   push(rest)
+proc opUncons(name: auto) {.inline.} =
+  let (first, rest) = popUncons(name)
+  push(first)
+  push(rest)
 
-# proc opUnswons(name: auto) {.inline.} =
-#   let (first, rest) = popuncons(name)
-#   push(rest)
-#   push(first)
+proc opUnswons(name: auto) {.inline.} =
+  let (first, rest) = popUncons(name)
+  push(rest)
+  push(first)
 
-# proc opNull(name: auto) {.inline.} =
-#   oneParameter(name)
-#   let x = pop()
-#   push(null(x))
+proc opNull(name: auto) {.inline.} =
+  oneParameter(name)
+  let x = pop()
+  push(newBool(null(x)))
 
 # proc opSmall(name: auto) {.inline.} =
 #   oneParameter(name)
 #   let x = pop()
 #   push(small(x))
 
-# template cmpop(op: untyped, name: auto) =
-#   twoParameters(name)
-#   let y = pop()
-#   let x = pop()
-#   push(newBool(op(cmp(x, y).value, 0)))
+template cmpOp(op: untyped, name: auto) =
+  twoParameters(name)
+  let y = pop()
+  let x = pop()
+  push(newBool(op(cmp(x, y).val, 0)))
 
-# proc opLt(name: auto) {.inline.} = cmpop(`<`, name)
-# proc opGt(name: auto) {.inline.} = cmpop(`>`, name)
-# proc opLte(name: auto) {.inline.} = cmpop(`<=`, name)
-# proc opGte(name: auto) {.inline.} = cmpop(`>=`, name)
+proc opLt(name: auto) {.inline.} = cmpOp(`<`, name)
+proc opGt(name: auto) {.inline.} = cmpOp(`>`, name)
+proc opLte(name: auto) {.inline.} = cmpOp(`<=`, name)
+proc opGte(name: auto) {.inline.} = cmpOp(`>=`, name)
 
 proc opEq(name: auto) =
   let y = pop()
   let x = pop()
   push(newBool(x == y))
 
-# proc opNeq(name: auto) {.inline.} =
-#   opEq(name)
-#   let x = pop()
-#   push(x.not)
+proc opNeq(name: auto) {.inline.} =
+  opEq(name)
+  let x = pop()
+  push(x.not)
 
 proc opI(name: auto) {.inline.} =
   oneParameter(name)
@@ -588,13 +628,13 @@ method eval*(x: Ident) =
   of SUB: opSub(SUB)
   of MUL: opMul(MUL)
   of DIVIDE: opDivide(DIVIDE)
-  # of REM: opRem(REM)
-  # of DIV: opDiv(DIV)
-  # of SIGN: opSign(SIGN)
-  # of NEG: opNeg(NEG)
-  # of ORD: opOrd(ORD)
-  # of CHR: opChr(CHR)
-  # of ABS: opAbs(ABS)
+  of REM: opRem(REM)
+  of DIV: opDiv(DIV)
+  of SIGN: opSign(SIGN)
+  of NEG: opNeg(NEG)
+  of ORD: opOrd(ORD)
+  of CHR: opChr(CHR)
+  of ABS: opAbs(ABS)
   of ACOS: opAcos(ACOS)
   of ASIN: opAsin(ASIN)
   of ATAN: opAtan(ATAN)
@@ -605,29 +645,29 @@ method eval*(x: Ident) =
   of SQRT: opSqrt(SQRT)
   of TAN: opTan(TAN)
   of TANH: opTanh(TANH)
-  # of PRED: opPred(PRED)
-  # of SUCC: opSucc(SUCC)
-  # of MAX: opMax(MAX)
-  # of MIN: opMin(MIN)
+  of PRED: opPred(PRED)
+  of SUCC: opSucc(SUCC)
+  of MAX: opMax(MAX)
+  of MIN: opMin(MIN)
   of PEEK: opPeek(PEEK)
   of PUT: opPut(PUT)
   of CONS: opCons(CONS)
   of SWONS: opSwons(SWONS)
   of FIRST: opFirst(FIRST)
   of REST: opRest(REST)
-  # of AT: opAt(AT)
-  # of OF: opOf(OF)
+  of AT: opAt(AT)
+  of OF: opOf(OF)
   of SIZE: opSize(SIZE)
-  # of UNCONS: opUncons(UNCONS)
-  # of UNSWONS: opUnswons(UNSWONS)
-  # of NULL: opNull(NULL)
+  of UNCONS: opUncons(UNCONS)
+  of UNSWONS: opUnswons(UNSWONS)
+  of NULL: opNull(NULL)
   # of SMALL: opSmall(SMALL)
-  # of GT: opGt(GT)
-  # of LT: opLt(LT)
-  # of GTE: opGte(GTE)
-  # of LTE: opLte(LTE)
+  of GT: opGt(GT)
+  of LT: opLt(LT)
+  of GTE: opGte(GTE)
+  of LTE: opLte(LTE)
   of EQ: opEq(EQ)
-  # of NEQ: opNeq(NEQ)
+  of NEQ: opNeq(NEQ)
   of I: opI(I)
   of X: opX(X)
   of DIP: opDip(DIP)
