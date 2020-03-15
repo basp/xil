@@ -85,3 +85,4 @@ const
   SPLIT* = "split"
   SOME* = "some"
   ALL* = "all"
+  HELP* = "help"

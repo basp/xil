@@ -1,4 +1,4 @@
-import lists, strformat, strutils, opnames, vm
+import tables, lists, strformat, strutils, opnames, vm, help
 
 var 
   stack* = initSinglyLinkedList[Value]()
@@ -120,6 +120,11 @@ proc twoIntegers(name: string) =
 proc ordinalOnTop(name: string) =
   const msg = "ordinal on top"
   if not ordinal(stack.head.value):
+    raiseExecError(msg, name)
+
+proc listOnTop(name: auto) =
+  const msg = "list on top"
+  if not list(stack.head.value):
     raiseExecError(msg, name)
 
 proc listAsSecond(name: auto) =
@@ -409,6 +414,7 @@ proc opLte(name: auto) {.inline.} = cmpOp(`<=`, name)
 proc opGte(name: auto) {.inline.} = cmpOp(`>=`, name)
 
 proc opEq(name: auto) =
+  twoParameters(name)
   let y = pop()
   let x = pop()
   push(newBool(x == y))
@@ -556,55 +562,38 @@ proc opTimes(name: auto) =
   for i in 0..<n.val:
     execTerm(p)
 
-# proc filterList() =
-#   var a1 = newList(@[])
-#   let p = cast[List](pop())
-#   let a = cast[List](pop())
-#   saved = stack
-#   for x in a.val:
-#     push(x)
-#     execTerm(p)
-#     if isThruthy(peek()):
-#       a1.val.append(x)
-#     stack = saved
-#   push(a1)
+proc filterList() =
+  var a1 = newList(@[])
+  let p = cast[List](pop())
+  let a = cast[List](pop())
+  saved = stack
+  for x in a.val:
+    push(x)
+    execTerm(p)
+    if isThruthy(peek()):
+      a1.val.append(x)
+    stack = saved
+  push(a1)
 
-# proc filterSet() =
-#   var a1 = 0
-#   let p = popt[List]()
-#   let a = popt[Set]()
-#   saved = stack
-#   for x in items(a.val:
-#     push(newInt(x))
-#     execTerm(p)
-#     if isThruthy(peek()):
-#       a1 = add(a1, x)
-#     stack = saved
-#   push(newSet(a1))
+proc opFilter(name: auto) =
+  twoParameters(name)
+  oneQuote(name)
+  aggregateAsSecond(name)
+  if stack.head.next.value of List:
+    filterList()
+  else:
+    raiseRuntimeError("unsupported aggregate for `" & name & "`")
 
-# proc filterString() =
-#   var a1 = ""
-#   let p = popt[List]()
-#   let a = popt[String]()
-#   saved = stack
-#   for x in a.val:
-#     push(newChar(x))
-#     execTerm(p)
-#     if isThruthy(peek()):
-#       a1 &= x
-#     stack = saved
-#   push(newString(a1))
-
-# proc opFilter(name: auto) =
-#   twoParameters(name)
-#   oneQuote(name)
-#   aggregateAsSecond(name)
-#   if stack.head.next.value of List:
-#     filterList()
-#   elif stack.head.next.value of Set:
-#     filterSet()
-#   elif stack.head.next.value of String:
-#     filterString()
+proc opHelp(name: auto) =
+  oneParameter(name)
+  listOnTop(name)
+  let a = cast[List](pop())
+  for x in items(a):
+    let id = $x
+    if helptable.hasKey(id):
+      let effect = helptable[id].effect
+      let info = fmt"{id}  :  {effect}"
+      stdout.writeLine(info)
 
 method eval*(x: Value) {.base.} =
   push(x)
@@ -683,7 +672,8 @@ method eval*(x: Ident) =
   of IFTE: opIfte(IFTE)
   of MAP: opMap(MAP)
   of TIMES: opTimes(TIMES)
-  # of FILTER: opFilter(FILTER)
+  of FILTER: opFilter(FILTER)
+  of HELP: opHelp(HELP)
   else:
     let msg = "undefined symbol `" & $x & "`"
     raiseRuntimeError(msg)
