@@ -1,4 +1,4 @@
-import lists, strformat, opnames, vm
+import lists, strformat, strutils, opnames, vm
 
 var 
   stack* = initSinglyLinkedList[Value]()
@@ -148,7 +148,7 @@ proc nonEmptyAggregate(name: string) =
   const msg = "non-empty aggregate"
   if not aggregate(stack.head.value):
     raiseExecError(msg, name)
-  if stack.head.next == nil:
+  if size(stack.head.value).val < 1:
     raiseExecError(msg, name)
 
 proc numericOnTop(name: string) =
@@ -320,7 +320,8 @@ proc opSucc(name: auto) {.inline.} = unOrdinalOp(succ, name)
 proc opPut(name: auto) {.inline.} =
   oneParameter(name)
   let x = pop()
-  echo x
+  let ss = $len(stack)
+  echo '='.repeat(len(ss) + 1) & "> " & $x
 
 proc opPeek(name: string) {.inline.} =
   oneParameter(name)
@@ -391,10 +392,10 @@ proc opNull(name: auto) {.inline.} =
   let x = pop()
   push(newBool(null(x)))
 
-# proc opSmall(name: auto) {.inline.} =
-#   oneParameter(name)
-#   let x = pop()
-#   push(small(x))
+proc opSmall(name: auto) {.inline.} =
+  oneParameter(name)
+  let x = pop()
+  push(small(x))
 
 template cmpOp(op: untyped, name: auto) =
   twoParameters(name)
@@ -661,7 +662,7 @@ method eval*(x: Ident) =
   of UNCONS: opUncons(UNCONS)
   of UNSWONS: opUnswons(UNSWONS)
   of NULL: opNull(NULL)
-  # of SMALL: opSmall(SMALL)
+  of SMALL: opSmall(SMALL)
   of GT: opGt(GT)
   of LT: opLt(LT)
   of GTE: opGte(GTE)

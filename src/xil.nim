@@ -1,6 +1,7 @@
-import lists, scanner, parser, vm, interp
+import scanner, strformat, parser, vm, interp
 
 while true:
+  stdout.write(fmt"[{len(stack)}] ")
   let src = stdin.readLine()
   try:
     let scanner = newScanner(src)
@@ -11,7 +12,3 @@ while true:
   except:
     let msg = getCurrentExceptionMsg()
     echo(msg)
-  finally:
-    echo "current stack:"
-    for x in stacK.items:
-      echo x

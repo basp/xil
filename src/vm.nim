@@ -256,36 +256,36 @@ method `$`*(a: Set): string = "{" & join(toSeq(items(a)), " ") & "}"
 template unFloatOp(name: string, op: untyped, fn: untyped) =
   method op*(a: Value): Value {.base.} =
     raiseRuntimeError("badarg for `" & name & "`")
-  
+
   method op*(a: Int): Value  =
     newFloat(fn(a.val.float))
-  
+
   method op*(a: Float): Value =
     newFloat(fn(a.val))
 
 template biFloatOp(name: string, op: untyped, fn: untyped, ctor: untyped) =
   method op*(a: Value, b: Value): Value {.base.} =
     raiseRuntimeError("badargs for `" & name & "`")
-  
+
   method op*(a: Int, b: Int): Value =
     ctor(fn(a.val, b.val))
-  
+
   method op*(a: Int, b: Float): Value  =
     newFloat(fn(a.val.float, b.val))
-  
+
   method op*(a: Float, b: Int): Value =
     newFloat(fn(a.val, b.val.float))
-  
+
   method op*(a: Float, b: Float): Value =
     newFloat(fn(a.val, b.val))
 
 template biLogicOp(name: string, op: untyped) =
   method op*(a: Value, b: Value): Value {.base.} =
     raiseRuntimeError("badargs for `" & name & "`")
-  
+
   method op*(a: Bool, b: Bool): Value =
     newBool(op(a.val, b.val))
-  
+
   method op*(a: Set, b: Set): Value =
     newSet(op(a.val, b.val))
 
@@ -399,18 +399,20 @@ biLogicOp("xor", `xor`)
 
 proc `not`*(x: Value): Value = newBool(not isThruthy(x))
 
-method size*(x: Value): Value {.base.} =
-  raiseRuntimeError("badarg for `size` " & repr(x))
-
-method size*(x: List): Value =
+proc len*(x: SomeLinkedList[Value]): int =
   var count = 0
-  var next = x.val.head
+  var next = x.head
   while next != nil:
     inc(count)
     next = next.next
-  newInt(count)
+  count
 
-method size*(x: Set): Value =
+method len*(x: Value): int {.base.} =
+  raiseRuntimeError("badarg for `len` " & repr(x))
+
+method len*(x: List): int = len(x.val)
+
+method len*(x: Set): int =
   # Brian Kernighan’s algorithm for
   # counting the number of set bits
   var n = x.val
@@ -418,9 +420,19 @@ method size*(x: Set): Value =
   while n > 0:
     n = n and (n - 1)
     inc(count)
-  newInt(count)
-method size*(x: String): Value =
-  newInt(len(x.val))
+  count
+
+method len*(x: String): int =
+  len(x.val)
+
+method size*(x: Value): Int {.base.} =
+  raiseRuntimeError("badargs for `size`")
+
+method size*(x: List): Int = newInt(len(x))
+
+method size*(x: Set): Int = newInt(len(x))
+  
+method size*(x: String): Int = newInt(len(x))
 
 method cons*(x: Value, a: Value): Value {.base.} =
   raiseRuntimeError("badargs for `cons`")
@@ -440,10 +452,10 @@ method cons*(x: Int, a: Set): Value =
   b.add(x)
   return b
 
-method first*(a: Value): Value {.base.} = 
+method first*(a: Value): Value {.base.} =
   raiseRuntimeError("badarg for `first`")
 
-method first*(a: String): Value = 
+method first*(a: String): Value =
   if len(a.val) == 0:
     raiseRuntimeError("empty string is invalid for `first`")
   newChar(a.val[0])
@@ -493,9 +505,38 @@ method at*(a: Value, i: int): Value {.base.} =
 method at*(a: List, i: int): Value =
   var p = 0
   var next = a.val.head
-  while p < i: 
+  while p < i:
     next = next.next
     if next == nil:
       raiseRuntimeError("index out of range")
     inc(p)
   next.value
+
+method zero*(x: Value): bool {.base, inline.} = false
+method zero*(x: Int): bool {.inline.} = x.val == 0
+method zero*(x: Float): bool {.inline.} = x.val == 0
+method zero*(x: Bool): bool {.inline.} = ord(x.val) == 0
+method zero*(x: Char): bool {.inline.} = ord(x.val) == 0
+
+method one*(x: Value): bool {.base, inline.} = false
+method one*(x: Int): bool {.inline.} = x.val == 1
+method one*(x: Float): bool {.inline.} = x.val == 1
+method one*(x: Bool): bool {.inline.} = ord(x.val) == 1
+method one*(x: Char): bool {.inline.} = ord(x.val) == 1
+
+method small*(x: Value): Bool {.base, inline.} =
+  newBool(false)
+method small*(x: Int): Bool {.inline.} =
+  newBool(zero(x) or one(x))
+method small*(x: Float): Bool {.inline.} =
+  newBool(zero(x) or one(x))
+method small*(x: Bool): Bool {.inline.} =
+  newBool(zero(x) or one(x))
+method small*(x: Char): Bool {.inline.} =
+  newBool(zero(x) or one(x))
+method small*(x: String): Bool {.inline.} =
+  newBool(len(x) < 2)
+method small*(x: List): Bool {.inline.} =
+  newBool(len(x) < 2)
+method small*(x: Set): Bool {.inline.} =
+  newBool(len(x) < 2)
