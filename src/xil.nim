@@ -1,10 +1,12 @@
 import scanner, strformat, parser, vm, interp
 
-const banner = """       
+const version = "0.1.0"
+
+const banner = fmt"""       
       _ _ 
  __ _(_) |
  \ \ / | |
- /_\_\_|_| v0.1.0
+ /_\_\_|_| v{version}
  """
 
 if isMainModule:
