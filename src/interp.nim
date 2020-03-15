@@ -365,6 +365,9 @@ proc opPut(name: auto) {.inline.} =
 
 proc opPeek(name: string) {.inline.} =
   oneParameter(name)
+  let x = peek()
+  let ss = $len(stack)
+  echo ':'.repeat(len(ss) + 1) & "> " & $x
 
 proc opCons(name: auto) {.inline.} =
   twoParameters(name)
