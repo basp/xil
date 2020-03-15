@@ -27,11 +27,9 @@ if isMainModule:
       let msg = getCurrentExceptionMsg()
       echo "Parse error: ", msg
     except RuntimeException:
-      echo "runtime exception"
       let msg = getCurrentExceptionMsg()
       echo "Runtime error: ", msg
     except Exception:
-      echo "other exception"
       let
         e = getCurrentException()
         msg = getCurrentExceptionMsg()
