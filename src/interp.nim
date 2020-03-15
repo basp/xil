@@ -1,14 +1,15 @@
-import lists, opnames, vm, strformat
+import lists, opnames, vm
 
 var 
   stack* = initSinglyLinkedList[Value]()
   saved = initSinglyLinkedList[Value]()
 
-template saved2() = saved.head.next
-template saved3() = saved.head.next.next
-template saved4() = saved.head.next.next.next
-template saved5() = saved.head.next.next.next.next
-template saved6() = saved.head.next.next.next.next.next
+template saved1 = saved.head
+template saved2 = saved.head.next
+template saved3 = saved.head.next.next
+template saved4 = saved.head.next.next.next
+template saved5 = saved.head.next.next.next.next
+template saved6 = saved.head.next.next.next.next.next
 
 method eval*(x: Value) {.base,locks:0.}
 
@@ -27,15 +28,15 @@ proc pop(): Value {.inline.} =
 proc peek(): Value {.inline.} =
   stack.head.value
 
-proc popt[T](): T {.inline.} = 
-  cast[T](pop())
+# proc popt[T](): T {.inline.} = 
+#   cast[T](pop())
 
-proc peekt[T](): T {.inline.} = 
-  cast[T](peek())
+# proc peekt[T](): T {.inline.} = 
+#   cast[T](peek())
 
-method floatable(x: Value): bool {.base,inline.} = false
-method floatable(x: Int): bool {.inline.} = true
-method floatable(x: Float): bool {.inline.} = true
+method numeric(x: Value): bool {.base,inline.} = false
+method numeric(x: Int): bool {.inline.} = true
+method numeric(x: Float): bool {.inline.} = true
 
 method integer(x: Value): bool {.base,inline.} = false
 method integer(x: Int): bool {.inline.} = true
@@ -87,10 +88,10 @@ proc twoIntegers(name: string) {.inline.} =
   doAssert stack.head.next.value.integer, name
 
 proc integerOrFloat(name: string) {.inline.} =
-  doAssert stack.head.value.floatable, name
+  doAssert stack.head.value.numeric, name
 
 proc integerOrFloatAsSecond(name: string) {.inline.} =
-  doAssert stack.head.next.value.floatable, name
+  doAssert stack.head.next.value.numeric, name
 
 proc logical(name: string) {.inline.} =
   doAssert stack.head.value.logical, name
@@ -134,23 +135,30 @@ template binary(op: untyped, name: string) =
   let x = pop()
   push(op(x, y))
 
-template unfloatop(op: untyped, name: string) =
+template unFloatOp(op: untyped, name: string) =
   oneParameter(name)
   integerOrFloat(name)
   unary(op, name)
 
-template bifloatop(op: untyped, name: string) =
+template biFloatOp(op: untyped, name: string) =
   twoParameters(name)
   integerOrFloat(name)
   integerOrFloatAsSecond(name)
   binary(op, name)
 
-template bilogicop(op: untyped, name: string) =
+template biLogicalOp(op: untyped, name: string) =
   twoParameters(name)
   logical(name)
   logicalAsSecond(name)
   binary(op, name)
 
+# .. X Y Z  ->  .. X Y Z [Z Y X ..]
+# Pushes the stack as a list.
+proc opStack(name: auto) =
+  push(newList(stack))
+
+# Identity function, does nothing.
+# Any program of the form  P id Q  is equivalent to just  P Q.
 proc opId() {.inline.} = discard
 
 proc opDup(name: auto) {.inline.} = 
@@ -160,40 +168,37 @@ proc opDup(name: auto) {.inline.} =
 # X Y  ->  Y X
 proc opSwap(name: auto) {.inline.} =
   twoParameters(name)
-  let y = pop()
-  let x = pop()
-  push(y)
-  push(x)
+  saved = stack
+  stack.head = saved3
+  push(saved1.value)
+  push(saved2.value)
 
 # X Y Z  ->  Z X Y
 proc opRollup(name: auto) {.inline.} =
   threeParameters(name)
-  let z = pop()
-  let y = pop()
-  let x = pop()
-  push(z)
-  push(x)
-  push(y)
+  saved = stack
+  stack.head = saved4
+  push(saved1.value)
+  push(saved3.value)
+  push(saved2.value)
 
 # X Y Z  ->  Y Z X
 proc opRolldown(name: auto) {.inline.} =
   threeParameters(name)
-  let z = pop()
-  let y = pop()
-  let x = pop()
-  push(y)
-  push(z)
-  push(x)
+  saved = stack
+  stack.head = saved4
+  push(saved2.value)
+  push(saved1.value)
+  push(saved3.value)
 
 # X Y Z  ->  Z Y X
 proc opRotate(name: auto) {.inline.} =
   threeParameters(name)
-  let z = pop()
-  let y = pop()
-  let x = pop()
-  push(z)
-  push(y)
-  push(x)
+  saved = stack
+  stack.head = saved4
+  push(saved1.value)
+  push(saved2.value)
+  push(saved3.value)
 
 proc opPop(name: auto): Value {.inline.} =
   oneParameter(name)
@@ -214,21 +219,21 @@ proc opCmp(name: auto) {.inline.} =
   let x = pop()
   push(cmp(x, y))
 
-proc opOr(name: auto) {.inline.} = bilogicop(`or`, name)
-proc opXor(name: auto) {.inline.} = bilogicop(`xor`, name)
-proc opAnd(name: auto) {.inline.} = bilogicop(`and`, name)
+proc opOr(name: auto) {.inline.} = biLogicalOp(`or`, name)
+proc opXor(name: auto) {.inline.} = biLogicalOp(`xor`, name)
+proc opAnd(name: auto) {.inline.} = biLogicalOp(`and`, name)
 
 proc opNot(name: auto) {.inline.} =
   oneParameter(name)
   logical(name)
   unary(`not`, name) 
   
-proc opAdd(name: auto) {.inline.} = bifloatop(`+`, name)
-proc opSub(name: auto) {.inline.} = bifloatop(`-`, name)
-proc opMul(name: auto) {.inline.} = bifloatop(`*`, name)
-proc opDivf(name: auto) {.inline.} = bifloatop(`/`, name)
+proc opAdd(name: auto) {.inline.} = biFloatOp(`+`, name)
+proc opSub(name: auto) {.inline.} = biFloatOp(`-`, name)
+proc opMul(name: auto) {.inline.} = biFloatOp(`*`, name)
+proc opDivide(name: auto) {.inline.} = biFloatOp(`/`, name)
 
-proc opRem(name: auto) {.inline.} = bifloatop(`mod`, name)
+# proc opRem(name: auto) {.inline.} = bifloatop(`mod`, name)
 
 # proc opDiv(name: auto) {.inline.} =
 #   twoParameters(name)
@@ -341,70 +346,70 @@ proc opSize(name: auto) {.inline.} =
 #   push(rest)
 #   push(first)
 
-proc opNull(name: auto) {.inline.} =
-  oneParameter(name)
-  let x = pop()
-  push(null(x))
+# proc opNull(name: auto) {.inline.} =
+#   oneParameter(name)
+#   let x = pop()
+#   push(null(x))
 
-proc opSmall(name: auto) {.inline.} =
-  oneParameter(name)
-  let x = pop()
-  push(small(x))
+# proc opSmall(name: auto) {.inline.} =
+#   oneParameter(name)
+#   let x = pop()
+#   push(small(x))
 
-template cmpop(op: untyped, name: auto) =
-  twoParameters(name)
-  let y = pop()
-  let x = pop()
-  push(newBool(op(cmp(x, y).value, 0)))
+# template cmpop(op: untyped, name: auto) =
+#   twoParameters(name)
+#   let y = pop()
+#   let x = pop()
+#   push(newBool(op(cmp(x, y).value, 0)))
 
-proc opLt(name: auto) {.inline.} = cmpop(`<`, name)
-proc opGt(name: auto) {.inline.} = cmpop(`>`, name)
-proc opLte(name: auto) {.inline.} = cmpop(`<=`, name)
-proc opGte(name: auto) {.inline.} = cmpop(`>=`, name)
+# proc opLt(name: auto) {.inline.} = cmpop(`<`, name)
+# proc opGt(name: auto) {.inline.} = cmpop(`>`, name)
+# proc opLte(name: auto) {.inline.} = cmpop(`<=`, name)
+# proc opGte(name: auto) {.inline.} = cmpop(`>=`, name)
 
 proc opEq(name: auto) =
   let y = pop()
   let x = pop()
   push(newBool(x == y))
 
-proc opNeq(name: auto) {.inline.} =
-  opEq(name)
-  let x = pop()
-  push(x.not)
+# proc opNeq(name: auto) {.inline.} =
+#   opEq(name)
+#   let x = pop()
+#   push(x.not)
 
 proc opI(name: auto) {.inline.} =
   oneParameter(name)
   oneQuote(name)
-  let p = popt[ListVal]()
-  execterm(p)
+  let p = cast[List](pop())
+  execTerm(p)
 
 proc opX(name: auto) {.inline.} =
   oneParameter(name)
   oneQuote(name)
-  let p = peekt[ListVal]()
-  execterm(p)
+  let p = cast[List](pop())
+  execTerm(p)
 
 proc opDip(name: auto) {.inline.} =
   twoParameters(name)
   oneQuote(name)
-  let p = popt[ListVal]()
+  let p = cast[List](pop())
   let x = pop()
-  execterm(p)
+  execTerm(p)
   push(x)
 
 proc opApp1(name: auto) {.inline.} =
   twoParameters(name)
   oneQuote(name)
-  let p = popt[ListVal]()
+  let p = cast[List](pop())
   discard pop()
-  execterm(p)
+  execTerm(p)
 
 template nary(paramcount: untyped, name: auto, top: untyped) =
   paramcount(name)
   oneQuote(name)
   saved = stack
-  let p = popt[ListVal]()
-  execterm(p)
+  let p = cast[List](pop())
+  execTerm(p)
   let x = peek()
   stack.head = top
   stack.prepend(x)
@@ -418,12 +423,12 @@ proc opUnary2(name: auto) =
   threeParameters(name)
   oneQuote(name)
   saved = stack
-  let p = popt[ListVal]()
+  let p = cast[List](pop())
   stack.head = saved2
-  execterm(p)
+  execTerm(p)
   let py = peek()
   stack.head = saved3
-  execterm(p)
+  execTerm(p)
   let px = peek()
   stack.head = saved4
   push(px)
@@ -433,15 +438,15 @@ proc opUnary3(name: auto) =
   fourParameters(name)
   oneQuote(name)
   saved = stack
-  let p = popt[ListVal]()
+  let p = cast[List](pop())
   stack.head = saved2
-  execterm(p)
+  execTerm(p)
   let pz = peek()
   stack.head = saved3
-  execterm(p)
+  execTerm(p)
   let py = peek()
   stack.head = saved4
-  execterm(p)
+  execTerm(p)
   let px = peek()
   stack.head = saved5
   push(px)
@@ -452,18 +457,18 @@ proc opUnary4(name: auto) =
   fiveParameters(name)
   oneQuote(name)
   saved = stack
-  let p = popt[ListVal]()
+  let p = cast[List](pop())
   stack.head = saved2
-  execterm(p)
+  execTerm(p)
   let pw = peek()
   stack.head = saved3
-  execterm(p)
+  execTerm(p)
   let pz = peek()
   stack.head = saved4
-  execterm(p)
+  execTerm(p)
   let py = peek()
   stack.head = saved5
-  execterm(p)
+  execTerm(p)
   let px = peek()
   stack.head = saved6
   push(px)
@@ -473,17 +478,17 @@ proc opUnary4(name: auto) =
 
 proc opIfte(name: auto) =
   threeParameters(name)
-  let f = popt[ListVal]()
-  let t = popt[ListVal]()
-  let b = popt[ListVal]()
+  let f = cast[List](pop())
+  let t = cast[List](pop())
+  let b = cast[List](pop())
   saved = stack
-  execterm(b)
+  execTerm(b)
   let p = peek()
   stack = saved
   if(isThruthy(p)):
-    execterm(t)
+    execTerm(t)
   else:
-    execterm(f)    
+    execTerm(f)    
 
 proc opMap(name: auto) =
   twoParameters(name)
@@ -491,11 +496,11 @@ proc opMap(name: auto) =
   listAsSecond(name)
   saved = stack
   let b = newList(@[])
-  let p = popt[List]()
-  let a = popt[List]()
+  let p = cast[List](pop())
+  let a = cast[List](pop())
   for x in a.val:
     push(x)
-    execterm(p)
+    execTerm(p)
     b.val.append(pop())
     stack = saved
   stack.head = saved3
@@ -505,66 +510,67 @@ proc opTimes(name: auto) =
   twoParameters(name)
   oneQuote(name)
   integerAsSecond(name)
-  let p = popt[List]()
-  let n = popt[Int]()
+  let p = cast[List](pop())
+  let n = cast[Int](pop())
   for i in 0..<n.val:
-    execterm(p)
+    execTerm(p)
 
-proc filterList() =
-  var a1 = newList(@[])
-  let p = popt[List]()
-  let a = popt[List]()
-  saved = stack
-  for x in a.val:
-    push(x)
-    execterm(p)
-    if isThruthy(peek()):
-      a1.val.append(x)
-    stack = saved
-  push(a1)
+# proc filterList() =
+#   var a1 = newList(@[])
+#   let p = cast[List](pop())
+#   let a = cast[List](pop())
+#   saved = stack
+#   for x in a.val:
+#     push(x)
+#     execTerm(p)
+#     if isThruthy(peek()):
+#       a1.val.append(x)
+#     stack = saved
+#   push(a1)
 
-proc filterSet() =
-  var a1 = 0
-  let p = popt[List]()
-  let a = popt[Set]()
-  saved = stack
-  for x in items(a.val:
-    push(newInt(x))
-    execterm(p)
-    if isThruthy(peek()):
-      a1 = add(a1, x)
-    stack = saved
-  push(newSet(a1))
+# proc filterSet() =
+#   var a1 = 0
+#   let p = popt[List]()
+#   let a = popt[Set]()
+#   saved = stack
+#   for x in items(a.val:
+#     push(newInt(x))
+#     execTerm(p)
+#     if isThruthy(peek()):
+#       a1 = add(a1, x)
+#     stack = saved
+#   push(newSet(a1))
 
-proc filterString() =
-  var a1 = ""
-  let p = popt[List]()
-  let a = popt[String]()
-  saved = stack
-  for x in a.val:
-    push(newChar(x))
-    execterm(p)
-    if isThruthy(peek()):
-      a1 &= x
-    stack = saved
-  push(newString(a1))
+# proc filterString() =
+#   var a1 = ""
+#   let p = popt[List]()
+#   let a = popt[String]()
+#   saved = stack
+#   for x in a.val:
+#     push(newChar(x))
+#     execTerm(p)
+#     if isThruthy(peek()):
+#       a1 &= x
+#     stack = saved
+#   push(newString(a1))
 
-proc opFilter(name: auto) =
-  twoParameters(name)
-  oneQuote(name)
-  aggregateAsSecond(name)
-  if stack.head.next.value of List:
-    filterList()
-  elif stack.head.next.value of Set:
-    filterSet()
-  elif stack.head.next.value of String:
-    filterString()
+# proc opFilter(name: auto) =
+#   twoParameters(name)
+#   oneQuote(name)
+#   aggregateAsSecond(name)
+#   if stack.head.next.value of List:
+#     filterList()
+#   elif stack.head.next.value of Set:
+#     filterSet()
+#   elif stack.head.next.value of String:
+#     filterString()
 
 method eval*(x: Value) {.base.} =
   push(x)
 
 method eval*(x: Ident) =
-  case x.value
+  case x.val
+  of STACK: opStack(STACK)
   of ID: opId()
   of DUP: opDup(DUP)
   of SWAP: opSwap(SWAP)
@@ -581,14 +587,14 @@ method eval*(x: Ident) =
   of ADD: opAdd(ADD)
   of SUB: opSub(SUB)
   of MUL: opMul(MUL)
-  of DIVF: opDivf(DIVF)
-  of REM: opRem(REM)
-  of DIV: opDiv(DIV)
-  of SIGN: opSign(SIGN)
-  of NEG: opNeg(NEG)
-  of ORD: opOrd(ORD)
-  of CHR: opChr(CHR)
-  of ABS: opAbs(ABS)
+  of DIVIDE: opDivide(DIVIDE)
+  # of REM: opRem(REM)
+  # of DIV: opDiv(DIV)
+  # of SIGN: opSign(SIGN)
+  # of NEG: opNeg(NEG)
+  # of ORD: opOrd(ORD)
+  # of CHR: opChr(CHR)
+  # of ABS: opAbs(ABS)
   of ACOS: opAcos(ACOS)
   of ASIN: opAsin(ASIN)
   of ATAN: opAtan(ATAN)
@@ -599,29 +605,29 @@ method eval*(x: Ident) =
   of SQRT: opSqrt(SQRT)
   of TAN: opTan(TAN)
   of TANH: opTanh(TANH)
-  of PRED: opPred(PRED)
-  of SUCC: opSucc(SUCC)
-  of MAX: opMax(MAX)
-  of MIN: opMin(MIN)
+  # of PRED: opPred(PRED)
+  # of SUCC: opSucc(SUCC)
+  # of MAX: opMax(MAX)
+  # of MIN: opMin(MIN)
   of PEEK: opPeek(PEEK)
   of PUT: opPut(PUT)
   of CONS: opCons(CONS)
   of SWONS: opSwons(SWONS)
   of FIRST: opFirst(FIRST)
   of REST: opRest(REST)
-  of AT: opAt(AT)
-  of OF: opOf(OF)
+  # of AT: opAt(AT)
+  # of OF: opOf(OF)
   of SIZE: opSize(SIZE)
-  of UNCONS: opUncons(UNCONS)
-  of UNSWONS: opUnswons(UNSWONS)
-  of NULL: opNull(NULL)
-  of SMALL: opSmall(SMALL)
-  of GT: opGt(GT)
-  of LT: opLt(LT)
-  of GTE: opGte(GTE)
-  of LTE: opLte(LTE)
+  # of UNCONS: opUncons(UNCONS)
+  # of UNSWONS: opUnswons(UNSWONS)
+  # of NULL: opNull(NULL)
+  # of SMALL: opSmall(SMALL)
+  # of GT: opGt(GT)
+  # of LT: opLt(LT)
+  # of GTE: opGte(GTE)
+  # of LTE: opLte(LTE)
   of EQ: opEq(EQ)
-  of NEQ: opNeq(NEQ)
+  # of NEQ: opNeq(NEQ)
   of I: opI(I)
   of X: opX(X)
   of DIP: opDip(DIP)
@@ -636,7 +642,7 @@ method eval*(x: Ident) =
   of IFTE: opIfte(IFTE)
   of MAP: opMap(MAP)
   of TIMES: opTimes(TIMES)
-  of FILTER: opFilter(FILTER)
+  # of FILTER: opFilter(FILTER)
   else:
     let msg = "undefined symbol `" & $x & "`"
     raiseRuntimeError(msg)

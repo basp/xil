@@ -1,4 +1,5 @@
 const 
+  STACK* = "stack"
   ID* = "id"
   DUP* = "dup"
   SWAP* = "swap"
@@ -17,7 +18,7 @@ const
   ADD* = "+"
   SUB* = "-"
   MUL* = "*"
-  DIVF* = "/"
+  DIVIDE* = "/"
   REM* = "rem"
   DIV* = "div"
   SIGN* = "sign"

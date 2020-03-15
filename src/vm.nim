@@ -311,6 +311,8 @@ biLogicOp("and", `and`)
 biLogicOp("or", `or`)
 biLogicOp("xor", `xor`)
 
+proc `not`*(x: Value): Value = newBool(not isThruthy(x))
+
 method size*(x: Value): Value {.base.} =
   raiseRuntimeError("badargs for `size`")
 
