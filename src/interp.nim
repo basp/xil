@@ -597,8 +597,12 @@ proc opHelp(name: auto) =
         stdout.writeLine(line)
       stdout.writeLine("")
 
+var usrtable* = initTable[string, Usr]()
+
 method eval*(x: Value) {.base.} =
   push(x)
+
+method eval*(x: Usr) = usrtable[x.id.val] = x  
 
 method eval*(x: Ident) =
   case x.val
@@ -677,5 +681,8 @@ method eval*(x: Ident) =
   of FILTER: opFilter(FILTER)
   of HELP: opHelp(HELP)
   else:
-    let msg = "undefined symbol `" & $x & "`"
-    raiseRuntimeError(msg)
+    if usrtable.hasKey(x.val):
+      execTerm(usrtable[x.val].term)
+    else:
+      let msg = "undefined symbol `" & $x & "`"
+      raiseRuntimeError(msg)

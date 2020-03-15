@@ -3,12 +3,20 @@ import scanner, strformat, parser, vm, interp
 while true:
   stdout.write(fmt"[{len(stack)}] ")
   let src = stdin.readLine()
+  let scanner = newScanner(src);
+  let parser = newParser(scanner)
   try:
-    let scanner = newScanner(src)
-    let parser = newParser(scanner)
-    let term = parser.parseTerm()
-    for fac in term:
-      eval(fac)
-  except:
+    var (ok, def) = parser.tryParseDef()
+    if ok:
+      eval(def)
+    else:
+      let term = parser.parseTerm()
+      for x in term: eval(x)
+  except RuntimeException:
     let msg = getCurrentExceptionMsg()
-    echo(msg)
+    echo "Runtime error: ", msg
+  except Exception:
+    let
+      e = getCurrentException()
+      msg = getCurrentExceptionMsg()
+    echo "Exception: ", repr(e), " with message ", msg
