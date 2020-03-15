@@ -592,8 +592,10 @@ proc opHelp(name: auto) =
     let id = $x
     if helptable.hasKey(id):
       let effect = helptable[id].effect
-      let info = fmt"{id}  :  {effect}"
-      stdout.writeLine(info)
+      stdout.writeLine(fmt"{id}  :  {effect}")
+      for line in helptable[id].info:
+        stdout.writeLine(line)
+      stdout.writeLine("")
 
 method eval*(x: Value) {.base.} =
   push(x)
