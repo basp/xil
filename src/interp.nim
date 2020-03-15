@@ -610,7 +610,22 @@ proc opLinrec(name: auto) =
   linrecaux()
 
 proc opTailrec(name: auto) =
-  discard
+  threeParameters(name)
+  threeQuotes(name)
+  let r1 = cast[List](pop())
+  let t = cast[List](pop())
+  let p = cast[List](pop())
+  proc tailrecaux() =
+    saved = stack
+    execTerm(p)
+    let res = pop()
+    stack = saved
+    if isThruthy(res):
+      execTerm(t)
+    else:
+      execTerm(r1)
+      tailrecaux()
+  tailrecaux()
 
 proc opBinrec(name: auto) =
   discard
@@ -651,6 +666,11 @@ proc opTimes(name: auto) =
   let n = cast[Int](pop())
   for i in 0..<n.val:
     execTerm(p)
+
+proc opPrimrec(name: auto) =
+  threeParameters(name)
+  # TODO
+  discard
 
 proc filterList() =
   var a1 = newList(@[])

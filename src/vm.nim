@@ -549,3 +549,11 @@ method small*(x: List): Bool {.inline.} =
   newBool(len(x) < 2)
 method small*(x: Set): Bool {.inline.} =
   newBool(len(x) < 2)
+
+import unicode
+ 
+method reverse*(x: Value): Value {.base.} =
+  raiseRuntimeError("badarg for `reverse` " & repr(x))
+method reverse*(x: String): Value =
+  for i in high(x.val)..0:
+    discard
