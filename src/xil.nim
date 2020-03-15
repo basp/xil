@@ -17,16 +17,21 @@ if isMainModule:
     let scanner = newScanner(src);
     let parser = newParser(scanner)
     try:
-      var (ok, def) = parser.tryParseDef()
-      if ok:
+      if scanner.peek() == ':':
+        var def = parser.parseDef()
         eval(def)
       else:
         let term = parser.parseTerm()
         for x in term: eval(x)
+    except ParseException:
+      let msg = getCurrentExceptionMsg()
+      echo "Parse error: ", msg
     except RuntimeException:
+      echo "runtime exception"
       let msg = getCurrentExceptionMsg()
       echo "Runtime error: ", msg
     except Exception:
+      echo "other exception"
       let
         e = getCurrentException()
         msg = getCurrentExceptionMsg()

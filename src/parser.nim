@@ -7,7 +7,7 @@ type
     nextTok: Token
   ParseException* = object of Exception
 
-proc raiseParseError(msg: string) =
+proc raiseParseError*(msg: string) =
   raise newException(ParseException, msg)
 
 proc advance(p: Parser) =
