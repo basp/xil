@@ -246,12 +246,12 @@ template literalStr(t: untyped) =
 literalStr(Bool)
 literalStr(Int)
 literalStr(Float)
-literalStr(List)
 literalStr(Ident)
 
 method `$`*(a: Char): string = repr(a.val)
 method `$`*(a: String): string = escape(a.val)
 method `$`*(a: Set): string = "{" & join(toSeq(items(a)), " ") & "}"
+method `$`*(a: List): string = "[" & join(toSeq(items(a)), " ") & "]"
 
 template unFloatOp(name: string, op: untyped, fn: untyped) =
   method op*(a: Value): Value {.base.} =
@@ -511,6 +511,15 @@ method at*(a: List, i: int): Value =
       raiseRuntimeError("index out of range")
     inc(p)
   next.value
+
+method concat*(a: Value, b: Value): Value {.base.} =
+  raiseRuntimeError("badargs for `concat`")
+
+method concat*(a: List, b: List): Value =
+  var z = cast[List](a.clone())
+  for x in items(b):
+    z.add(x.clone())
+  return z
 
 method zero*(x: Value): bool {.base, inline.} = false
 method zero*(x: Int): bool {.inline.} = x.val == 0

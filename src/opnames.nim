@@ -49,6 +49,7 @@ const
   SIZE* = "size"
   UNCONS* = "uncons"
   UNSWONS* = "unswons"
+  CONCAT* = "concat"
   NULL* = "null"
   SMALL* = "small"
   GT* = "gt"

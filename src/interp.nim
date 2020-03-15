@@ -3,6 +3,7 @@ import tables, lists, strformat, strutils, opnames, vm, help
 var 
   stack* = initSinglyLinkedList[Value]()
   saved = initSinglyLinkedList[Value]()
+  usrtable* = initTable[string, Usr]()
 
 template saved1 = saved.head
 template saved2 = saved.head.next
@@ -146,6 +147,13 @@ proc aggregateOnTop(name: string) =
 
 proc aggregateAsSecond(name: string) =
   const msg = "aggregate as second parameter"
+  if not aggregate(stack.head.next.value):
+    raiseExecError(msg, name)
+
+proc twoAggregates(name: string) =
+  const msg = "two aggregates"
+  if not aggregate(stack.head.value):
+    raiseExecError(msg, name)
   if not aggregate(stack.head.next.value):
     raiseExecError(msg, name)
 
@@ -392,6 +400,13 @@ proc opUnswons(name: auto) {.inline.} =
   push(rest)
   push(first)
 
+proc opConcat(name: auto) =
+  twoParameters(name)
+  twoAggregates(name)
+  let b = cast[List](pop())
+  let a = cast[List](pop())
+  push(a.concat(b))
+
 proc opNull(name: auto) {.inline.} =
   oneParameter(name)
   let x = pop()
@@ -596,8 +611,9 @@ proc opHelp(name: auto) =
       for line in helptable[id].info:
         stdout.writeLine(line)
       stdout.writeLine("")
-
-var usrtable* = initTable[string, Usr]()
+    if usrtable.hasKey(id):
+      let line = fmt"{id}  :  {usrtable[id].term}"
+      stdout.writeLine(line)
 
 method eval*(x: Value) {.base.} =
   push(x)
@@ -605,6 +621,9 @@ method eval*(x: Value) {.base.} =
 method eval*(x: Usr) = usrtable[x.id.val] = x  
 
 method eval*(x: Ident) =
+  if usrtable.hasKey(x.val):
+    execTerm(usrtable[x.val].term)
+    return
   case x.val
   of STACK: opStack(STACK)
   of ID: opId()
@@ -656,6 +675,7 @@ method eval*(x: Ident) =
   of SIZE: opSize(SIZE)
   of UNCONS: opUncons(UNCONS)
   of UNSWONS: opUnswons(UNSWONS)
+  of CONCAT: opConcat(CONCAT)
   of NULL: opNull(NULL)
   of SMALL: opSmall(SMALL)
   of GT: opGt(GT)
@@ -681,8 +701,5 @@ method eval*(x: Ident) =
   of FILTER: opFilter(FILTER)
   of HELP: opHelp(HELP)
   else:
-    if usrtable.hasKey(x.val):
-      execTerm(usrtable[x.val].term)
-    else:
-      let msg = "undefined symbol `" & $x & "`"
-      raiseRuntimeError(msg)
+    let msg = "undefined symbol `" & $x & "`"
+    raiseRuntimeError(msg)
