@@ -1,6 +1,6 @@
 import tables, lists, strformat, strutils, opnames, vm, help
 
-var 
+var
   stack* = initSinglyLinkedList[Value]()
   saved = initSinglyLinkedList[Value]()
   usrtable* = initTable[string, Usr]()
@@ -217,7 +217,7 @@ proc opStack(name: auto) =
 
 proc opId() {.inline.} = discard
 
-proc opDup(name: auto) {.inline.} = 
+proc opDup(name: auto) {.inline.} =
   oneParameter(name)
   push(peek().clone)
 
@@ -254,7 +254,7 @@ proc opRotate(name: auto) {.inline.} =
 
 proc opPop(name: auto): Value {.inline.} =
   oneParameter(name)
-  pop() 
+  pop()
 
 proc opChoice(name: auto) {.inline.} =
   threeParameters(name)
@@ -278,8 +278,8 @@ proc opAnd(name: auto) {.inline.} = biLogicalOp(`and`, name)
 proc opNot(name: auto) {.inline.} =
   oneParameter(name)
   logicalOnTop(name)
-  unary(`not`, name) 
-  
+  unary(`not`, name)
+
 proc opAdd(name: auto) {.inline.} = biFloatOp(`+`, name)
 proc opSub(name: auto) {.inline.} = biFloatOp(`-`, name)
 proc opMul(name: auto) {.inline.} = biFloatOp(`*`, name)
@@ -343,7 +343,7 @@ proc opCons(name: auto) {.inline.} =
   twoParameters(name)
   aggregateOnTop(name)
   binary(cons, name)
-  
+
 proc opSwons(name: auto) {.inline.} =
   opSwap(name)
   opCons(name)
@@ -550,7 +550,34 @@ proc opIfte(name: auto) =
   if(isThruthy(p)):
     execTerm(t)
   else:
-    execTerm(f)    
+    execTerm(f)
+
+proc opCond(name: auto) =
+  discard
+
+proc opWhile(name: string) =
+  discard
+
+proc opLinrec(name: auto) =
+  discard
+
+proc opTailrec(name: auto) =
+  discard
+
+proc opBinrec(name: auto) =
+  discard
+
+proc opGenreC(name: auto) =
+  discard
+
+proc opCondlinrec(name: auto) =
+  discard
+
+proc opStep(name: auto) =
+  discard
+
+proc opFold(name: auto) =
+  discard
 
 proc opMap(name: auto) =
   twoParameters(name)
@@ -618,7 +645,7 @@ proc opHelp(name: auto) =
 method eval*(x: Value) {.base.} =
   push(x)
 
-method eval*(x: Usr) = usrtable[x.id.val] = x  
+method eval*(x: Usr) = usrtable[x.id.val] = x
 
 method eval*(x: Ident) =
   if usrtable.hasKey(x.val):
@@ -696,6 +723,13 @@ method eval*(x: Ident) =
   of UNARY3: opUnary3(UNARY3)
   of UNARY4: opUnary4(UNARY4)
   of IFTE: opIfte(IFTE)
+  of COND: opCond(COND)
+  of WHILE: opwhile(WHILE)
+  of LINREC: opLinrec(LINREC)
+  of TAILREC: opTailrec(TAILREC)
+  of BINREC: opBinrec(BINREC)
+  of GENREC: opGenrec(GENREC)
+  of CONDLINREC: opCondlinrec(CONDLINREC)
   of MAP: opMap(MAP)
   of TIMES: opTimes(TIMES)
   of FILTER: opFilter(FILTER)
