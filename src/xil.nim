@@ -1,4 +1,4 @@
-import scanner, strformat, parser, vm, interp
+import strformat, scan, parse, vm, interp
 
 const version = "0.1.0"
 

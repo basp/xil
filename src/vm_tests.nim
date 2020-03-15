@@ -1,4 +1,4 @@
-import lists, hashes, vm, sequtils
+import lists, hashes, sequtils, vm
 
 when isMainModule:
   block:
