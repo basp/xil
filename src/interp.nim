@@ -140,6 +140,33 @@ proc quoteOnTop(name: string) =
 
 proc oneQuote(name: auto) = quoteOnTop(name)
 
+proc twoQuotes(name: auto) =
+  const msg = "two quotes on top"
+  if not list(stack.head.value):
+    raiseExecError(msg, name)
+  if not list(stack.head.next.value):
+    raiseExecError(msg, name)
+
+proc threeQuotes(name: auto) =
+  const msg = "three quotes on top"
+  if not list(stack.head.value):
+    raiseExecError(msg, name)
+  if not list(stack.head.next.value):
+    raiseExecError(msg, name)
+  if not list(stack.head.next.next.value):
+    raiseExecError(msg, name)
+
+proc fourQuotes(name: auto) =
+  const msg = "four quotes on top"
+  if not list(stack.head.value):
+    raiseExecError(msg, name)
+  if not list(stack.head.next.value):
+    raiseExecError(msg, name)
+  if not list(stack.head.next.next.value):
+    raiseExecError(msg, name)
+  if not list(stack.head.next.next.next.value):
+    raiseExecError(msg, name)
+
 proc aggregateOnTop(name: string) =
   const msg = "aggregate on top"
   if not aggregate(stack.head.value):
@@ -400,7 +427,7 @@ proc opUnswons(name: auto) {.inline.} =
   push(rest)
   push(first)
 
-proc opConcat(name: auto) =
+proc opConcat(name: auto) {.inline.} =
   twoParameters(name)
   twoAggregates(name)
   let b = cast[List](pop())
@@ -428,7 +455,7 @@ proc opGt(name: auto) {.inline.} = cmpOp(`>`, name)
 proc opLte(name: auto) {.inline.} = cmpOp(`<=`, name)
 proc opGte(name: auto) {.inline.} = cmpOp(`>=`, name)
 
-proc opEq(name: auto) =
+proc opEq(name: auto) {.inline.} =
   twoParameters(name)
   let y = pop()
   let x = pop()
@@ -559,7 +586,25 @@ proc opWhile(name: string) =
   discard
 
 proc opLinrec(name: auto) =
-  discard
+  fourParameters(name)
+  fourQuotes(name)
+  let 
+    r2 = cast[List](pop())
+    r1 = cast[List](pop())
+    t = cast[List](pop())
+    p = cast[List](pop())
+  proc linrecaux() =
+    saved = stack
+    execTerm(p)
+    let res = pop()
+    stack = saved
+    if isThruthy(res):
+      execTerm(t)
+    else:
+      execTerm(r1)
+      linrecaux()
+      execTerm(r2)
+  linrecaux()
 
 proc opTailrec(name: auto) =
   discard
@@ -730,6 +775,8 @@ method eval*(x: Ident) =
   of BINREC: opBinrec(BINREC)
   of GENREC: opGenrec(GENREC)
   of CONDLINREC: opCondlinrec(CONDLINREC)
+  of STEP: opStep(STEP)
+  of FOLD: opFold(FOLD)
   of MAP: opMap(MAP)
   of TIMES: opTimes(TIMES)
   of FILTER: opFilter(FILTER)
