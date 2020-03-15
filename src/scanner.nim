@@ -35,7 +35,7 @@ proc initToken(kind: TokenKind, lexeme: string, pos: int): Token =
   result.lexeme = lexeme
   result.pos = pos
 
-proc peek(s: Scanner): char =
+proc peek*(s: Scanner): char =
   if s.readPos + 1 >= len(s.src):
     char(0)
   else:
