@@ -630,14 +630,42 @@ proc opTailrec(name: auto) =
 proc opBinrec(name: auto) =
   discard
 
-proc opGenreC(name: auto) =
-  discard
+proc opGenrec(name: auto) =
+  fourParameters(name)
+  fourQuotes(name)
+  let r2 = cast[List](pop())
+  let r1 = cast[List](pop())
+  let t = cast[List](pop())
+  let i = cast[List](pop())
+  saved = stack
+  execTerm(i)
+  let result = pop()
+  stack = saved
+  if isThruthy(result):
+    execTerm(t)
+  else:
+    execTerm(r1)
+    let q = newList()
+    q.add(i)
+    q.add(t)
+    q.add(r1)
+    q.add(r2)
+    q.add(newIdent("genrec"))
+    push(q)
+    execTerm(r2)
 
 proc opCondlinrec(name: auto) =
   discard
 
 proc opStep(name: auto) =
-  discard
+  twoParameters(name)
+  oneQuote(name)
+  listAsSecond(name)
+  let p = cast[List](pop())
+  let a = cast[List](pop())
+  for x in items(a):
+    push(x)
+    execTerm(p)
 
 proc opFold(name: auto) =
   discard
@@ -666,10 +694,27 @@ proc opTimes(name: auto) =
   let n = cast[Int](pop())
   for i in 0..<n.val:
     execTerm(p)
+    
+proc opInfra(name: auto) =
+  twoParameters(name)
+  oneQuote(name)
+  listAsSecond(name)
+  let p = cast[List](pop())
+  let l1 = cast[List](pop())
+  saved = stack
+  stack = l1.val
+  execTerm(p)
+  let l2 = pop()
+  stack = saved
+  push(l2)
 
 proc opPrimrec(name: auto) =
   threeParameters(name)
-  # TODO
+  twoQuotes(name)
+  let c = cast[List](pop())
+  let i = cast[List](pop())
+  let x = pop()
+
   discard
 
 proc filterList() =
@@ -802,6 +847,8 @@ method eval*(x: Ident) =
   of FOLD: opFold(FOLD)
   of MAP: opMap(MAP)
   of TIMES: opTimes(TIMES)
+  of INFRA: opInfra(INFRA)
+  of PRIMREC: opPrimrec(PRIMREC)
   of FILTER: opFilter(FILTER)
   of HELP: opHelp(HELP)
   else:

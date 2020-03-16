@@ -36,10 +36,10 @@ proc initToken(kind: TokenKind, lexeme: string, pos: int): Token =
   result.pos = pos
 
 proc peek*(s: Scanner): char =
-  if s.readPos + 1 >= len(s.src):
+  if s.readPos >= len(s.src):
     char(0)
   else:
-    s.src[s.readPos + 1]
+    s.src[s.readPos]
 
 proc advance(s: Scanner) =
   if s.readPos >= len(s.src):
