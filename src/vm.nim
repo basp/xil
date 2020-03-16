@@ -1,6 +1,6 @@
 import math, hashes, lists, strutils, sequtils
 
-const maxSetSize = 32
+const maxSetSize* = 32
 
 type
   Value* = ref object of RootObj
@@ -550,8 +550,6 @@ method small*(x: List): Bool {.inline.} =
 method small*(x: Set): Bool {.inline.} =
   newBool(len(x) < 2)
 
-import unicode
- 
 method reverse*(x: Value): Value {.base.} =
   raiseRuntimeError("badarg for `reverse` " & repr(x))
 method reverse*(x: String): Value =

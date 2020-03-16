@@ -714,8 +714,22 @@ proc opPrimrec(name: auto) =
   let c = cast[List](pop())
   let i = cast[List](pop())
   let x = pop()
-
-  discard
+  var n = 0
+  if x of List:
+    let list = cast[List](x)
+    for y in items(list):
+      push(y)
+      inc(n)
+  elif x of Int:
+    let i = cast[Int](x)
+    var j = i.val
+    while j > 0:
+      push(newInt(j))
+      dec(j)
+      inc(n)
+  execTerm(i)
+  for i in 0..<n:
+    execTerm(c)
 
 proc filterList() =
   var a1 = newList(@[])
@@ -755,8 +769,7 @@ proc opHelp(name: auto) =
       let line = fmt"{id}  :  {usrtable[id].term}"
       stdout.writeLine(line)
 
-method eval*(x: Value) {.base.} =
-  push(x)
+method eval*(x: Value) {.base.} = push(x)
 
 method eval*(x: Usr) = usrtable[x.id.val] = x
 
