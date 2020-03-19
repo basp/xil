@@ -8,7 +8,10 @@ import
   vm,
   help,
   sugar,
-  algorithm
+  algorithm,
+  typetraits,
+  scan,
+  parse
 
 var
   stack* = initSinglyLinkedList[Value]()
@@ -42,6 +45,7 @@ proc peek(): Value {.inline.} =
 method numeric(x: Value): bool {.base,inline.} = false
 method numeric(x: Int): bool {.inline.} = true
 method numeric(x: Float): bool {.inline.} = true
+method numeric(x: Char): bool {.inline.} = true
 
 method integer(x: Value): bool {.base,inline.} = false
 method integer(x: Int): bool {.inline.} = true
@@ -225,6 +229,11 @@ proc twoLogicals(name: string) =
   if not logical(stack.head.next.value):
     raiseExecError(msg, name)
 
+proc sameTwoKinds(name: string) =
+  const msg = "same two kinds"
+  if stack.head.value.kind != stack.head.next.value.kind:
+    raiseExecError(msg, name)
+
 template unary(op: untyped, name: string) =
   let x = pop()
   push(op(x))
@@ -403,6 +412,15 @@ proc opPut(name: auto) {.inline.} =
   let ss = $len(stack)
   echo '='.repeat(len(ss) + 1) & "> " & $x
 
+proc opGet(name: auto) {.inline.} =
+  let ss = $len(stack)
+  stdout.write("< ")
+  let src = stdin.readLine()
+  let scanner = newScanner(src)
+  let parser = newParser(scanner)
+  let fac = parser.parseFactor()
+  push(fac)
+
 proc opPeek(name: string) {.inline.} =
   oneParameter(name)
   let x = peek()
@@ -473,9 +491,16 @@ proc opUnswons(name: auto) {.inline.} =
 proc opConcat(name: auto) {.inline.} =
   twoParameters(name)
   twoAggregates(name)
-  let b = cast[List](pop())
-  let a = cast[List](pop())
+  sameTwoKinds(name)
+  let b = pop()
+  let a = pop()
   push(a.concat(b))
+
+proc opReverse(name: auto) {.inline.} =
+  oneParameter(name)
+  aggregateOnTop(name)
+  let a = pop()
+  push(a.reverse())
 
 proc opNull(name: auto) {.inline.} =
   oneParameter(name)
@@ -787,7 +812,8 @@ proc filterList() =
 proc opFilter(name: auto) =
   twoParameters(name)
   oneQuote(name)
-  aggregateAsSecond(name)
+  # TODO: support other aggregates
+  listAsSecond(name)
   if stack.head.next.value of List:
     filterList()
   else:
@@ -877,6 +903,7 @@ method eval*(x: Ident) =
   of MIN: opMin(MIN)
   of PEEK: opPeek(PEEK)
   of PUT: opPut(PUT)
+  of GET: opGet(GET)
   of CONS: opCons(CONS)
   of SWONS: opSwons(SWONS)
   of FIRST: opFirst(FIRST)
@@ -887,6 +914,7 @@ method eval*(x: Ident) =
   of UNCONS: opUncons(UNCONS)
   of UNSWONS: opUnswons(UNSWONS)
   of CONCAT: opConcat(CONCAT)
+  of REVERSE: opReverse(REVERSE)
   of NULL: opNull(NULL)
   of SMALL: opSmall(SMALL)
   of GT: opGt(GT)

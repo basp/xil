@@ -3,7 +3,19 @@ import math, hashes, lists, strutils, sequtils
 const maxSetSize* = 32
 
 type
+  ValueKind* = enum
+    vkNone,
+    vkBool,
+    vkChar,
+    vkInt,
+    vkFloat,
+    vkString,
+    vkSet,
+    vkList,
+    vkIdent,
+    vkUsr
   Value* = ref object of RootObj
+    kind*: ValueKind
   Bool* = ref object of Value
     val*: bool
   Char* = ref object of Value
@@ -29,41 +41,41 @@ proc raiseRuntimeError*(msg: string) =
   raise newException(RuntimeException, msg)
 
 proc newBool*(val: bool): Bool =
-  Bool(val: val)
+  Bool(kind: vkBool, val: val)
 
 proc newChar*(val: char): Char =
-  Char(val: val)
+  Char(kind: vkChar, val: val)
 
 proc newInt*(val: int): Int =
-  Int(val: val)
+  Int(kind: vkInt, val: val)
 
 proc newFloat*(val: float): Float =
-  Float(val: val)
+  Float(kind: vkFloat, val: val)
 
 proc newString*(val: string): String =
-  String(val: val)
+  String(kind: vkString, val: val)
 
 proc newSet*(val: int): Set =
-  Set(val: val)
+  Set(kind: vkSet, val: val)
 
 proc newList*(): List =
-  List(val: initSinglyLinkedList[Value]())
+  List(kind: vkList, val: initSinglyLinkedList[Value]())
 
 proc newList*(xs: seq[Value]): List =
   result = newList()
   for x in xs: result.val.append(x)
 
 proc newList*(xs: SomeLinkedList[Value]): List =
-  List(val: xs)
+  List(kind: vkList, val: xs)
 
 proc newIdent*(val: string): Ident =
-  Ident(val: val)
+  Ident(kind: vkIdent, val: val)
 
 proc newUsr*(id: Ident, term: seq[Value]): Usr =
-  Usr(id: id, term: newList(term))
+  Usr(kind: vkUsr, id: id, term: newList(term))
 
 proc newUsr*(id: Ident, term: List): Usr =
-  Usr(id: id, term: term)
+  Usr(kind: vkUsr, id: id, term: term)
 
 method isThruthy*(x: Value): bool {.base, inline.} = false
 method isThruthy*(x: Int): bool {.inline.} = x.val != 0
@@ -281,6 +293,7 @@ template biFloatOp(name: string, op: untyped, fn: untyped, ctor: untyped) =
 
   method op*(a: Float, b: Float): Value =
     newFloat(fn(a.val, b.val))
+  
 
 template biLogicOp(name: string, op: untyped) =
   method op*(a: Value, b: Value): Value {.base.} =
@@ -355,6 +368,11 @@ method chr*(a: Int): Value {.inline.} =
   newChar(chr(a.val))
 method chr*(a: Bool): Value {.inline.} =
   newChar(chr(ord(a.val)))
+
+method `+`(a, b: Char): Value = chr(ord(a) + ord(b))
+method `-`(a, b: Char): Value = chr(ord(a) - ord(b))
+method `+`(a: Char, b: Int): Value = chr(ord(a) + ord(b))
+method `-`(a: Char, b: Int): Value = chr(ord(a) - ord(b))
 
 method pred*(a: Value): Value {.base, inline.} =
   raiseRuntimeError("badarg for `pred` " & repr(a))
@@ -513,6 +531,12 @@ method at*(a: String, i: int): Value =
     raiseRuntimeError("index out of range")
   newChar(a.val[i])
 
+method at*(a: Set, i: int): Value =
+  if i >= len(a):
+    raiseRuntimeError("index out of range")
+  let s = toSeq(items(a))
+  newInt(s[i])
+
 method at*(a: List, i: int): Value =
   var p = 0
   var next = a.val.head
@@ -534,6 +558,26 @@ method concat*(a, b: List): Value =
   for x in items(b):
     z.add(x.clone())
   return z
+
+method concat*(a, b: Set): Value = a or b
+
+method reverse*(a: Value): Value {.base.} =
+  raiseRuntimeError("badargs for `reverse`")
+
+method reverse*(a: Set): Value = a
+
+method reverse*(a: List): Value =
+  var b = newList()
+  for x in items(a):
+    b.val.prepend(x)
+  return b
+
+method reverse*(a: String): Value = 
+  proc reversed(): string =
+    result = newString(a.val.len)
+    for i, c in a.val:
+      result[a.val.high - i] = c
+  newString(reversed())
 
 method zero*(x: Value): bool {.base, inline.} = false
 method zero*(x: Int): bool {.inline.} = x.val == 0
@@ -563,9 +607,3 @@ method small*(x: List): Bool {.inline.} =
   newBool(len(x) < 2)
 method small*(x: Set): Bool {.inline.} =
   newBool(len(x) < 2)
-
-method reverse*(x: Value): Value {.base.} =
-  raiseRuntimeError("badarg for `reverse` " & repr(x))
-method reverse*(x: String): Value =
-  for i in high(x.val)..0:
-    discard

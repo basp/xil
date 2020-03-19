@@ -66,7 +66,7 @@ proc parseNumber(p: Parser): Value =
   except:
     raiseParseError(fmt"bad numeric '{s}'");
 
-proc parseFactor(p: Parser): Value
+proc parseFactor*(p: Parser): Value
 
 proc parseList(p: Parser): Value =
   var terms : seq[Value] = @[]
@@ -116,7 +116,7 @@ proc tryParseDef*(p: Parser): (bool, Usr) =
   except:
     return (false, nil)
 
-proc parseFactor(p: Parser): Value =
+proc parseFactor*(p: Parser): Value =
   case p.curTok.kind
   of tkColon: p.parseDef()
   of tkLBrack: p.parseList()
