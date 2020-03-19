@@ -13,7 +13,7 @@ if isMainModule:
   stdout.writeLine(banner)
   while true:
     try:
-      stdout.write(fmt"[{len(stack)}] ")
+      stdout.write(fmt"{len(stack)}> ")
       let src = stdin.readLine()
       let scanner = newScanner(src);
       let parser = newParser(scanner)

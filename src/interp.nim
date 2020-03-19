@@ -410,7 +410,7 @@ proc opPut(name: auto) {.inline.} =
   oneParameter(name)
   let x = pop()
   let ss = $len(stack)
-  echo '='.repeat(len(ss) + 1) & "> " & $x
+  echo '='.repeat(len(ss)) & "> " & $x
 
 proc opGet(name: auto) {.inline.} =
   let ss = $len(stack)
@@ -807,6 +807,11 @@ proc opPrimrec(name: auto) =
     for y in items(list):
       push(y)
       inc(n)
+  elif x of Set:
+    let s = cast[Set](x)
+    for y in items(s):
+      push(newInt(y))
+      inc(n)    
   elif x of Int:
     let i = cast[Int](x)
     var j = i.val
