@@ -5,7 +5,7 @@ type
     effect*: string
     info*: seq[string]
 
-var helptable* = initTable[string,Help]()
+var helptable* = initTable[string, Help]()
 
 macro h(arg: untyped, info: seq[string]): untyped =
   arg.expectKind nnkInfix
@@ -39,6 +39,66 @@ h(ROTATE => "X Y Z  ->  Z Y X", @[
   "Interchanges X and Z."
 ])
 
-h(PUT => "X  ->", @[
-  "Writes X to output, pops X off stack."
+h(POPD => "Y Z  ->  Z", @[
+  "As if defined by:   popd  ==  [pop] dip"
+])
+
+h(DUPD => "Y Z  ->  Y Y Z", @[
+  "As if defined by:   dupd  ==  [dup] dip"
+])
+
+h(SWAPD => "X Y Z  ->  Y X Z", @[
+  "As if defined by:   swapd  ==  [swap] dip"
+])
+
+h(ROLLUPD => "X Y Z W  ->  Z X Y W", @[
+  "As if defined by:   rollupd  ==  [rollup] dip"
+])
+
+h(ROLLDOWND => "X Y Z W  ->  Y Z X W", @[
+  "As if defined by:   rolldownd  ==  [rolldown] dip"
+])
+
+h(ROTATED => "X Y Z W  ->  Z Y X W", @[
+  "As if defined by:   rotated  ==  [rotate] dip"
+])
+
+h(POP => "X  ->", @[
+  "Removes X from top of the stack."
+])
+
+h(CHOICE => "B T F  ->  X", @[
+  "If B is true, then X = T else X = F."
+])
+
+h(OR => "X Y  ->  Z", @[
+  "Z is the union of sets X and Y,",
+  "logical disjunction for truth values."
+])
+
+h(XOR => "X Y  ->  Z", @[
+  "Z is the symmetric difference of sets X and Y,",
+  "logical exclusive disjunction for truth values."
+])
+
+h(AND => "X Y  ->  Z", @[
+  "Z is the intersection of sets X and Y,",
+  "logical conjunction for truth values."
+])
+
+h(NOT => "X  ->  Y", @[
+  "Y is the complement of set X,",
+  "logical negation for truth values."
+])
+
+h(ADD => "X  ->", @[
+])
+
+h(SUB => "X  ->", @[
+])
+
+h(MUL => "X  ->", @[
+])
+
+h(DIVIDE => "X  ->", @[
 ])

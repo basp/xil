@@ -96,6 +96,9 @@ literalEq(String)
 literalEq(Set)
 literalEq(Ident)
 
+method `==`*(a: Int, b: Float): bool = a.val.float == b.val
+method `==`*(a: Float, b: Int): bool = a.val == b.val.float
+
 method `==`*(a, b: List): bool =
   var x = a.val.head
   var y = b.val.head
@@ -238,7 +241,7 @@ iterator items*(a: List): Value =
     yield node.value
     node = node.next
 
-method `$`*(a: Value): string {.base} = repr(a)
+method `$`*(a: Value): string {.base.} = repr(a)
 
 template literalStr(t: untyped) =
   method `$`*(a: t): string = $a.val
@@ -257,7 +260,7 @@ template unFloatOp(name: string, op: untyped, fn: untyped) =
   method op*(a: Value): Value {.base.} =
     raiseRuntimeError("badarg for `" & name & "`")
 
-  method op*(a: Int): Value  =
+  method op*(a: Int): Value =
     newFloat(fn(a.val.float))
 
   method op*(a: Float): Value =
@@ -270,7 +273,7 @@ template biFloatOp(name: string, op: untyped, fn: untyped, ctor: untyped) =
   method op*(a: Int, b: Int): Value =
     ctor(fn(a.val, b.val))
 
-  method op*(a: Int, b: Float): Value  =
+  method op*(a: Int, b: Float): Value =
     newFloat(fn(a.val.float, b.val))
 
   method op*(a: Float, b: Int): Value =
@@ -431,7 +434,7 @@ method size*(x: Value): Int {.base.} =
 method size*(x: List): Int = newInt(len(x))
 
 method size*(x: Set): Int = newInt(len(x))
-  
+
 method size*(x: String): Int = newInt(len(x))
 
 method cons*(x: Value, a: Value): Value {.base.} =
@@ -496,11 +499,19 @@ method rest*(a: Set): Value =
 method uncons*(a: Value): (Value, Value) {.base.} =
   raiseRuntimeError("badarg for `uncons` " & repr(a))
 
+method uncons*(a: String): (Value, Value) =
+  (a.first, a.rest)
+
 method uncons*(a: List): (Value, Value) =
   (a.first, a.rest)
 
 method at*(a: Value, i: int): Value {.base.} =
   raiseRuntimeError("badarg for `at` " & repr(a))
+
+method at*(a: String, i: int): Value =
+  if i >= len(a.val):
+    raiseRuntimeError("index out of range")
+  newChar(a.val[i])
 
 method at*(a: List, i: int): Value =
   var p = 0
@@ -512,10 +523,13 @@ method at*(a: List, i: int): Value =
     inc(p)
   next.value
 
-method concat*(a: Value, b: Value): Value {.base.} =
+method concat*(a, b: Value): Value {.base.} =
   raiseRuntimeError("badargs for `concat`")
 
-method concat*(a: List, b: List): Value =
+method concat*(a, b: String): Value {.inline.} =
+  newString(a.val & b.val)
+
+method concat*(a, b: List): Value =
   var z = cast[List](a.clone())
   for x in items(b):
     z.add(x.clone())

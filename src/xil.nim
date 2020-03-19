@@ -12,11 +12,11 @@ const banner = fmt"""
 if isMainModule:
   stdout.writeLine(banner)
   while true:
-    stdout.write(fmt"[{len(stack)}] ")
-    let src = stdin.readLine()
-    let scanner = newScanner(src);
-    let parser = newParser(scanner)
     try:
+      stdout.write(fmt"[{len(stack)}] ")
+      let src = stdin.readLine()
+      let scanner = newScanner(src);
+      let parser = newParser(scanner)
       if scanner.peek() == ':':
         var def = parser.parseDef()
         eval(def)
@@ -29,6 +29,9 @@ if isMainModule:
     except RuntimeException:
       let msg = getCurrentExceptionMsg()
       echo "Runtime error: ", msg
+    except SyntaxException:
+      let msg = getCurrentExceptionMsg()
+      echo "Syntax error: ", msg
     except Exception:
       let
         e = getCurrentException()

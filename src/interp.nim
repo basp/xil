@@ -1,4 +1,14 @@
-import tables, lists, strformat, strutils, opnames, vm, help
+import
+  tables,
+  lists,
+  strformat,
+  strutils,
+  sequtils,
+  opnames,
+  vm,
+  help,
+  sugar,
+  algorithm
 
 var
   stack* = initSinglyLinkedList[Value]()
@@ -278,6 +288,36 @@ proc opRotate(name: auto) {.inline.} =
   push(saved1.value)
   push(saved2.value)
   push(saved3.value)
+
+proc dipped(name: auto, p: proc()) =
+  twoParameters(name)
+  let x = pop()
+  p()
+  push(x)
+
+proc opPopd(name: auto) {.inline.} =
+  twoParameters(name)
+  dipped(name, proc() = discard(pop()))
+
+proc opDupd(name: auto) {.inline.} =
+  twoParameters(name)
+  dipped(name, proc() = opDup(name))
+
+proc opSwapd(name: auto) {.inline.} =
+  threeParameters(name)
+  dipped(name, proc() = opSwap(name))
+
+proc opRollupd(name: auto) {.inline.} =
+  fourParameters(name)
+  dipped(name, proc() = opRollup(name))
+
+proc opRolldownd(name: auto) {.inline.} =
+  fourParameters(name)
+  dipped(name, proc() = opRolldown(name))
+
+proc opRotated(name: auto) {.inline.} =
+  fourParameters(name)
+  dipped(name, proc() = opRotate(name))
 
 proc opPop(name: auto): Value {.inline.} =
   oneParameter(name)
@@ -591,7 +631,7 @@ proc opWhile(name: string) =
 proc opLinrec(name: auto) =
   fourParameters(name)
   fourQuotes(name)
-  let 
+  let
     r2 = cast[List](pop())
     r1 = cast[List](pop())
     t = cast[List](pop())
@@ -694,7 +734,7 @@ proc opTimes(name: auto) =
   let n = cast[Int](pop())
   for i in 0..<n.val:
     execTerm(p)
-    
+
 proc opInfra(name: auto) =
   twoParameters(name)
   oneQuote(name)
@@ -754,6 +794,18 @@ proc opFilter(name: auto) =
     raiseRuntimeError("unsupported aggregate for `" & name & "`")
 
 proc opHelp(name: auto) =
+  var len = 0
+  for k in helptable.keys:
+    if k.len > len:
+      len = k.len
+  var keys = toSeq(keys(helptable))
+  keys.sort()
+  for k in keys:
+    let v = helptable[k]
+    let pad = len - len(k)
+    echo k & repeat(" ", pad) & "  :  " & v.effect
+  
+proc opHelpdetail(name: auto) =
   oneParameter(name)
   listOnTop(name)
   let a = cast[List](pop())
@@ -785,6 +837,12 @@ method eval*(x: Ident) =
   of ROLLUP: opRollup(ROLLUP)
   of ROLLDOWN: opRolldown(ROLLDOWN)
   of ROTATE: opRotate(ROTATE)
+  of POPD: opPopd(POPD)
+  of DUPD: opDupd(DUPD)
+  of SWAPD: opSwapd(SWAPD)
+  of ROLLUPD: opRollupd(ROLLUPD)
+  of ROLLDOWND: opRolldownd(ROLLDOWND)
+  of ROTATED: opRotated(ROTATED)
   of POP: discard opPop(POP)
   of CHOICE: opChoice(CHOICE)
   of CMP: opCmp(CMP)
@@ -864,6 +922,7 @@ method eval*(x: Ident) =
   of PRIMREC: opPrimrec(PRIMREC)
   of FILTER: opFilter(FILTER)
   of HELP: opHelp(HELP)
+  of HELPDETAIL: opHelpdetail(HELPDETAIL)
   else:
     let msg = "undefined symbol `" & $x & "`"
     raiseRuntimeError(msg)
