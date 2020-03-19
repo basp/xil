@@ -4,12 +4,12 @@ import
   strformat,
   strutils,
   sequtils,
-  opnames,
-  vm,
-  help,
   sugar,
   algorithm,
   typetraits,
+  opnames,
+  vm,
+  help,
   scan,
   parse
 
@@ -732,8 +732,30 @@ proc opStep(name: auto) =
     push(x)
     execTerm(p)
 
+# A V0 [P]  ->  V
 proc opFold(name: auto) =
-  discard
+  threeParameters(name)
+  oneQuote(name)
+  let p = cast[List](pop())
+  let v0 = pop()
+  if peek() of List:
+    let a = cast[List](pop())
+    push(v0)
+    for x in items(a):
+      push(x)
+      execTerm(p)
+  if peek() of Set:
+    let a = cast[Set](pop())
+    push(v0)
+    for x in items(a):
+      push(newInt(x))
+      execTerm(p)
+  if peek() of String:
+    let a = cast[String](pop())
+    push(v0)
+    for x in items(a):
+      push(newChar(x))
+      execTerm(p)  
 
 proc opMap(name: auto) =
   twoParameters(name)
