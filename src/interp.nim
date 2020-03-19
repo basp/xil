@@ -845,6 +845,19 @@ proc opFilter(name: auto) =
   else:
     raiseRuntimeError("unsupported aggregate for `" & name & "`")
 
+proc splitString(b: List): (Value, Value) =
+  let a1 = newString("")
+  let a2 = newString("")
+  let a = cast[String](pop())
+  for x in items(a):
+    push(newChar(x))
+    execTerm(b)
+    if isThruthy(pop()):
+      a1.val &= x
+    else:
+      a2.val &= x
+  (a1, a2)
+
 proc splitList(b: List): (Value, Value) =
   let a1 = newList()
   let a2 = newList()
@@ -882,6 +895,8 @@ proc opSplit(name: auto) =
     (a1, a2) = splitList(b)
   elif peek() of Set:
     (a1, a2) = splitSet(b)
+  elif peek() of String:
+    (a1, a2) = splitString(b)
   push(a1)
   push(a2)
 
