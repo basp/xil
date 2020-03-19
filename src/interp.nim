@@ -413,7 +413,6 @@ proc opPut(name: auto) {.inline.} =
   echo '='.repeat(len(ss)) & "> " & $x
 
 proc opGet(name: auto) {.inline.} =
-  let ss = $len(stack)
   stdout.write("< ")
   let src = stdin.readLine()
   let scanner = newScanner(src)
@@ -846,6 +845,46 @@ proc opFilter(name: auto) =
   else:
     raiseRuntimeError("unsupported aggregate for `" & name & "`")
 
+proc splitList(b: List): (Value, Value) =
+  let a1 = newList()
+  let a2 = newList()
+  let a = cast[List](pop())
+  for x in items(a):
+    push(x)
+    execTerm(b)
+    if isThruthy(pop()):
+      a1.add(x)
+    else:
+      a2.add(x)
+  (a1, a2)
+
+proc splitSet(b: List): (Value, Value) =
+  let a1 = newSet()
+  let a2 = newSet()
+  let a = cast[Set](pop())
+  for x in items(a):
+    push(newInt(x))
+    execTerm(b)
+    if isThruthy(pop()):
+      a1.add(x)
+    else:
+      a2.add(x)
+  (a1, a2)
+
+# split      :  A [B]  ->  A1 A2
+proc opSplit(name: auto) =
+  twoParameters(name)
+  oneQuote(name)
+  aggregateAsSecond(name)
+  let b = cast[List](pop())
+  var a1, a2: Value
+  if peek() of List:
+    (a1, a2) = splitList(b)
+  elif peek() of Set:
+    (a1, a2) = splitSet(b)
+  push(a1)
+  push(a2)
+
 proc opHelp(name: auto) =
   var len = 0
   for k in helptable.keys:
@@ -976,6 +1015,7 @@ method eval*(x: Ident) =
   of INFRA: opInfra(INFRA)
   of PRIMREC: opPrimrec(PRIMREC)
   of FILTER: opFilter(FILTER)
+  of SPLIT: opSplit(SPLIT)
   of HELP: opHelp(HELP)
   of HELPDETAIL: opHelpdetail(HELPDETAIL)
   else:

@@ -58,6 +58,8 @@ proc newString*(val: string): String =
 proc newSet*(val: int): Set =
   Set(kind: vkSet, val: val)
 
+proc newSet*(): Set {.inline.} = newSet(0)
+
 proc newList*(): List =
   List(kind: vkList, val: initSinglyLinkedList[Value]())
 
