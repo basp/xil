@@ -1,4 +1,5 @@
 const 
+  NEWSTACK* = "newstack"
   STACK* = "stack"
 
   # operators

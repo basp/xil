@@ -14,6 +14,12 @@ macro h(arg: untyped, info: seq[string]): untyped =
   quote do:
     helptable.add($`key`, Help(effect: $`eff`, info: `info`))
 
+h(NEWSTACK := "..  ->", @[
+])
+
+h(STACK := ".. X Y Z  ->  .. X Y Z [Z Y X ..]", @[
+])
+
 h(ID := "->", @[
   "Identity function, does nothing.",
   "Any program of the form  P id Q  is equivalent to just  P Q."

@@ -271,6 +271,9 @@ template biLogicalOp(op: untyped, name: string) =
 proc opStack(name: auto) =
   push(newList(stack))
 
+proc opNewstack(name: auto) =
+  stack = initSinglyLinkedList[Value]()
+
 proc opId() {.inline.} = discard
 
 proc opDup(name: auto) {.inline.} =
@@ -725,10 +728,10 @@ proc opIfte(name: auto) =
     execTerm(f)
 
 proc opCond(name: auto) =
-  discard
+  raiseRuntimeError("not implemented")
 
 proc opWhile(name: string) =
-  discard
+  raiseRuntimeError("not implemented")
 
 proc opLinrec(name: auto) =
   fourParameters(name)
@@ -770,7 +773,7 @@ proc opTailrec(name: auto) =
   tailrecaux()
 
 proc opBinrec(name: auto) =
-  discard
+  raiseRuntimeError("not implemented")
 
 proc opGenrec(name: auto) =
   fourParameters(name)
@@ -797,7 +800,7 @@ proc opGenrec(name: auto) =
     execTerm(r2)
 
 proc opCondlinrec(name: auto) =
-  discard
+  raiseRuntimeError("not implemented")
 
 proc opStep(name: auto) =
   twoParameters(name)
@@ -985,12 +988,15 @@ proc opSplit(name: auto) =
   aggregateAsSecond(name)
   let b = cast[vm.List](pop())
   var a1, a2: Value
-  if peek() of vm.List:
+  let top = peek()
+  if top of vm.List:
     (a1, a2) = splitList(b)
-  elif peek() of vm.Set:
+  elif top of vm.Set:
     (a1, a2) = splitSet(b)
-  elif peek() of vm.String:
+  elif top of vm.String:
     (a1, a2) = splitString(b)
+  else:
+    raiseRuntimeError("tilt")
   push(a1)
   push(a2)
 
@@ -1031,6 +1037,7 @@ method eval*(x: Ident) =
     execTerm(usrtable[x.val].term)
     return
   case x.val
+  of NEWSTACK: opNewstack(NEWSTACK)
   of STACK: opStack(STACK)
   of ID: opId()
   of DUP: opDup(DUP)
