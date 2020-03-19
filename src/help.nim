@@ -91,14 +91,85 @@ h(NOT => "X  ->  Y", @[
   "logical negation for truth values."
 ])
 
-h(ADD => "X  ->", @[
+h(ADD => " M I  ->  N", @[
+  "Numeric N is the result of adding integer I to numeric M.",
+  "Also supports float."
 ])
 
-h(SUB => "X  ->", @[
+h(SUB => "M I  ->  N", @[
+  "Numeric N is the result of subtracting integer I from numeric M.",
+  "Also supports float."
 ])
 
-h(MUL => "X  ->", @[
+h(MUL => "I J  ->  K", @[
+  "Integer K is the product of integers I and J.",
+  "Also supports float."
 ])
 
-h(DIVIDE => "X  ->", @[
+h(DIVIDE => "I J  ->  K", @[
+  "Integer K is the (rounded) ratio of integers I and J.",
+  "Also supports float."
+])
+
+h(REM => "I J  ->  K", @[
+])
+
+h(DIV => "I J  ->  K L", @[
+])
+
+h(SIGN => "N1  ->  N2", @[
+])
+
+h(NEG => "I  ->  J", @[
+])
+
+h(ORD => "C  ->  I", @[
+])
+
+h(CHR => "I  ->  C", @[
+])
+
+h(ABS => "N1  ->  N2", @[
+])
+
+h(ACOS => "F  ->  G", @[
+])
+
+h(ASIN => "F  ->  G", @[
+])
+
+h(ATAN => "F  ->  G", @[
+])
+
+h(CEIL => "F  ->  G", @[
+])
+
+h(COS => "F  ->  G", @[
+])
+
+h(COSH => "F  ->  G", @[
+])
+
+h(EXP => "F  ->  G", @[
+])
+
+h(FLOOR => "F  ->  G", @[
+])
+
+h(SIN => "F  ->  G", @[
+])
+
+h(SINH => "F  ->  G", @[
+])
+
+h(SQRT => "F  ->  G", @[
+])
+
+h(TAN => "F  ->  G", @[
+])
+
+h(TANH => "F  ->  G", @[
+])
+
+h(TRUNC => "F  ->  I", @[
 ])

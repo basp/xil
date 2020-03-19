@@ -229,6 +229,16 @@ proc twoLogicals(name: string) =
   if not logical(stack.head.next.value):
     raiseExecError(msg, name)
 
+proc stringOnTop(name: string) =
+  const msg = "string on top"
+  if stack.head.value.kind != vkString:
+    raiseExecError(msg, name)
+
+proc identOnTop(name: string) =
+  const msg = "symbol on top"
+  if stack.head.value.kind != vkIdent:
+    raiseExecError(msg, name)
+
 proc sameTwoKinds(name: string) =
   const msg = "same two kinds"
   if stack.head.value.kind != stack.head.next.value.kind:
@@ -501,6 +511,46 @@ proc opReverse(name: auto) {.inline.} =
   let a = pop()
   push(a.reverse())
 
+proc opName(name: auto) =
+  let x = pop()
+  case x.kind
+  of vkNone:
+    push(newString("none"))
+  of vkBool:
+    push(newString("bool"))
+  of vkChar:
+    push(newString("char"))
+  of vkInt:
+    push(newString("int"))
+  of vkFloat:
+    push(newString("float"))
+  of vkString:
+    push(newString("string"))
+  of vkSet:
+    push(newString("set"))
+  of vkList:
+    push(newString("list"))
+  of vkIdent:
+    let id = cast[Ident](x)
+    push(newString(id.val))
+  of vkUsr:
+    let usr = cast[Usr](x)
+    push(newString(usr.id.val))
+
+proc opIntern(name: auto) =
+  oneParameter(name)
+  stringOntop(name)
+  let x = cast[String](pop())
+  push(newIdent(x.val))
+
+proc opBody(name: auto) =
+  oneParameter(name)
+  identOnTop(name)
+  let id = cast[Ident](pop())
+  if not usrtable.hasKey(id.val):
+    raiseRuntimeError(fmt"undefined symbol `{id.val}`")
+  push(usrtable[id.val].term)
+    
 proc opNull(name: auto) {.inline.} =
   oneParameter(name)
   let x = pop()
@@ -822,6 +872,19 @@ proc opPrimrec(name: auto) =
   for i in 0..<n:
     execTerm(c)
 
+proc filterString() =
+  var a1 = newString("")
+  let p = cast[List](pop())
+  let a = cast[String](pop())
+  saved = stack
+  for x in items(a):
+    push(newChar(x))
+    execTerm(p)
+    if isThruthy(peek()):
+      a1.val &= x
+    stack = saved
+  push(a1)
+
 proc filterList() =
   var a1 = newList(@[])
   let p = cast[List](pop())
@@ -838,10 +901,13 @@ proc filterList() =
 proc opFilter(name: auto) =
   twoParameters(name)
   oneQuote(name)
-  # TODO: support other aggregates
-  listAsSecond(name)
+  aggregateAsSecond(name)
+  if stack.head.next.value of String:
+    filterString()
+    return
   if stack.head.next.value of List:
     filterList()
+    return
   else:
     raiseRuntimeError("unsupported aggregate for `" & name & "`")
 
@@ -996,6 +1062,9 @@ method eval*(x: Ident) =
   of UNSWONS: opUnswons(UNSWONS)
   of CONCAT: opConcat(CONCAT)
   of REVERSE: opReverse(REVERSE)
+  of NAME: opName(NAME)
+  of INTERN: opIntern(INTERN)
+  of BODY: opBody(BODY)
   of NULL: opNull(NULL)
   of SMALL: opSmall(SMALL)
   of GT: opGt(GT)

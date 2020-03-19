@@ -1,5 +1,7 @@
 const 
   STACK* = "stack"
+
+  # operators
   ID* = "id"
   DUP* = "dup"
   SWAP* = "swap"
@@ -36,13 +38,17 @@ const
   ACOS* = "acos"
   ASIN* = "asin"
   ATAN* = "atan"
+  CEIL* = "ceil"
   COS* = "cos"
   COSH* = "cosh"
+  EXP* = "exp"
+  FLOOR* = "floor"
   SIN* = "sin"
   SINH* = "sinh"
   SQRT* = "sqrt"
   TAN* = "tan"
   TANH* = "tanh"
+  TRUNC* = "trunc"
   PRED* = "pred"
   SUCC* = "succ"
   MAX* = "max"
@@ -58,6 +64,12 @@ const
   UNCONS* = "uncons"
   UNSWONS* = "unswons"
   CONCAT* = "concat"
+  ENCONCAT* = "enconcat"
+  NAME* = "name"
+  INTERN* = "intern"
+  BODY* = "body"
+  
+  # predicates
   NULL* = "null"
   SMALL* = "small"
   GT* = ">"
