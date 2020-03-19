@@ -540,7 +540,7 @@ proc opName(name: auto) =
 proc opIntern(name: auto) =
   oneParameter(name)
   stringOntop(name)
-  let x = cast[String](pop())
+  let x = cast[vm.String](pop())
   push(newIdent(x.val))
 
 proc opBody(name: auto) =
@@ -583,22 +583,50 @@ proc opNeq(name: auto) {.inline.} =
   let x = pop()
   push(x.not)
 
+proc opInteger(name: auto) {.inline.} =
+  oneParameter(name)
+  push(newBool(pop().kind == vkInt))
+
+proc opFloat(name: auto) {.inline.} =
+  oneParameter(name)
+  push(newBool(pop().kind == vkFloat))
+
+proc opChar(name: auto) {.inline.} =
+  oneParameter(name)
+  push(newBool(pop().kind == vkChar))
+
+proc opLogical(name: auto) {.inline.} =
+  oneParameter(name)
+  push(newBool(logical(pop())))
+
+proc opSet(name: auto) {.inline.} =
+  oneParameter(name)
+  push(newBool(pop().kind == vkSet))
+
+proc opString(name: auto) {.inline.} =
+  oneParameter(name)
+  push(newBool(pop().kind == vkString))
+
+proc opList(name: auto) {.inline.} =
+  oneParameter(name)
+  push(newBool(pop().kind == vkList))
+
 proc opI(name: auto) {.inline.} =
   oneParameter(name)
   oneQuote(name)
-  let p = cast[List](pop())
+  let p = cast[vm.List](pop())
   execTerm(p)
 
 proc opX(name: auto) {.inline.} =
   oneParameter(name)
   oneQuote(name)
-  let p = cast[List](pop())
+  let p = cast[vm.List](pop())
   execTerm(p)
 
 proc opDip(name: auto) {.inline.} =
   twoParameters(name)
   oneQuote(name)
-  let p = cast[List](pop())
+  let p = cast[vm.List](pop())
   let x = pop()
   execTerm(p)
   push(x)
@@ -606,7 +634,7 @@ proc opDip(name: auto) {.inline.} =
 proc opApp1(name: auto) {.inline.} =
   twoParameters(name)
   oneQuote(name)
-  let p = cast[List](pop())
+  let p = cast[vm.List](pop())
   discard pop()
   execTerm(p)
 
@@ -614,7 +642,7 @@ template nary(paramcount: untyped, name: auto, top: untyped) =
   paramcount(name)
   oneQuote(name)
   saved = stack
-  let p = cast[List](pop())
+  let p = cast[vm.List](pop())
   execTerm(p)
   let x = peek()
   stack.head = top
@@ -629,7 +657,7 @@ proc opUnary2(name: auto) =
   threeParameters(name)
   oneQuote(name)
   saved = stack
-  let p = cast[List](pop())
+  let p = cast[vm.List](pop())
   stack.head = saved2
   execTerm(p)
   let py = peek()
@@ -644,7 +672,7 @@ proc opUnary3(name: auto) =
   fourParameters(name)
   oneQuote(name)
   saved = stack
-  let p = cast[List](pop())
+  let p = cast[vm.List](pop())
   stack.head = saved2
   execTerm(p)
   let pz = peek()
@@ -663,7 +691,7 @@ proc opUnary4(name: auto) =
   fiveParameters(name)
   oneQuote(name)
   saved = stack
-  let p = cast[List](pop())
+  let p = cast[vm.List](pop())
   stack.head = saved2
   execTerm(p)
   let pw = peek()
@@ -684,9 +712,9 @@ proc opUnary4(name: auto) =
 
 proc opIfte(name: auto) =
   threeParameters(name)
-  let f = cast[List](pop())
-  let t = cast[List](pop())
-  let b = cast[List](pop())
+  let f = cast[vm.List](pop())
+  let t = cast[vm.List](pop())
+  let b = cast[vm.List](pop())
   saved = stack
   execTerm(b)
   let p = peek()
@@ -706,10 +734,10 @@ proc opLinrec(name: auto) =
   fourParameters(name)
   fourQuotes(name)
   let
-    r2 = cast[List](pop())
-    r1 = cast[List](pop())
-    t = cast[List](pop())
-    p = cast[List](pop())
+    r2 = cast[vm.List](pop())
+    r1 = cast[vm.List](pop())
+    t = cast[vm.List](pop())
+    p = cast[vm.List](pop())
   proc linrecaux() =
     saved = stack
     execTerm(p)
@@ -726,9 +754,9 @@ proc opLinrec(name: auto) =
 proc opTailrec(name: auto) =
   threeParameters(name)
   threeQuotes(name)
-  let r1 = cast[List](pop())
-  let t = cast[List](pop())
-  let p = cast[List](pop())
+  let r1 = cast[vm.List](pop())
+  let t = cast[vm.List](pop())
+  let p = cast[vm.List](pop())
   proc tailrecaux() =
     saved = stack
     execTerm(p)
@@ -747,10 +775,10 @@ proc opBinrec(name: auto) =
 proc opGenrec(name: auto) =
   fourParameters(name)
   fourQuotes(name)
-  let r2 = cast[List](pop())
-  let r1 = cast[List](pop())
-  let t = cast[List](pop())
-  let i = cast[List](pop())
+  let r2 = cast[vm.List](pop())
+  let r1 = cast[vm.List](pop())
+  let t = cast[vm.List](pop())
+  let i = cast[vm.List](pop())
   saved = stack
   execTerm(i)
   let result = pop()
@@ -775,8 +803,8 @@ proc opStep(name: auto) =
   twoParameters(name)
   oneQuote(name)
   listAsSecond(name)
-  let p = cast[List](pop())
-  let a = cast[List](pop())
+  let p = cast[vm.List](pop())
+  let a = cast[vm.List](pop())
   for x in items(a):
     push(x)
     execTerm(p)
@@ -785,22 +813,22 @@ proc opStep(name: auto) =
 proc opFold(name: auto) =
   threeParameters(name)
   oneQuote(name)
-  let p = cast[List](pop())
+  let p = cast[vm.List](pop())
   let v0 = pop()
-  if peek() of List:
-    let a = cast[List](pop())
+  if peek() of vm.List:
+    let a = cast[vm.List](pop())
     push(v0)
     for x in items(a):
       push(x)
       execTerm(p)
-  if peek() of Set:
-    let a = cast[Set](pop())
+  if peek() of vm.Set:
+    let a = cast[vm.Set](pop())
     push(v0)
     for x in items(a):
       push(newInt(x))
       execTerm(p)
-  if peek() of String:
-    let a = cast[String](pop())
+  if peek() of vm.String:
+    let a = cast[vm.String](pop())
     push(v0)
     for x in items(a):
       push(newChar(x))
@@ -812,8 +840,8 @@ proc opMap(name: auto) =
   listAsSecond(name)
   saved = stack
   let b = newList(@[])
-  let p = cast[List](pop())
-  let a = cast[List](pop())
+  let p = cast[vm.List](pop())
+  let a = cast[vm.List](pop())
   for x in a.val:
     push(x)
     execTerm(p)
@@ -826,7 +854,7 @@ proc opTimes(name: auto) =
   twoParameters(name)
   oneQuote(name)
   integerAsSecond(name)
-  let p = cast[List](pop())
+  let p = cast[vm.List](pop())
   let n = cast[Int](pop())
   for i in 0..<n.val:
     execTerm(p)
@@ -835,8 +863,8 @@ proc opInfra(name: auto) =
   twoParameters(name)
   oneQuote(name)
   listAsSecond(name)
-  let p = cast[List](pop())
-  let l1 = cast[List](pop())
+  let p = cast[vm.List](pop())
+  let l1 = cast[vm.List](pop())
   saved = stack
   stack = l1.val
   execTerm(p)
@@ -847,17 +875,17 @@ proc opInfra(name: auto) =
 proc opPrimrec(name: auto) =
   threeParameters(name)
   twoQuotes(name)
-  let c = cast[List](pop())
-  let i = cast[List](pop())
+  let c = cast[vm.List](pop())
+  let i = cast[vm.List](pop())
   let x = pop()
   var n = 0
-  if x of List:
-    let list = cast[List](x)
+  if x of vm.List:
+    let list = cast[vm.List](x)
     for y in items(list):
       push(y)
       inc(n)
-  elif x of Set:
-    let s = cast[Set](x)
+  elif x of vm.Set:
+    let s = cast[vm.Set](x)
     for y in items(s):
       push(newInt(y))
       inc(n)    
@@ -902,10 +930,10 @@ proc opFilter(name: auto) =
   twoParameters(name)
   oneQuote(name)
   aggregateAsSecond(name)
-  if stack.head.next.value of String:
+  if stack.head.next.value of vm.String:
     filterString()
     return
-  if stack.head.next.value of List:
+  if stack.head.next.value of vm.List:
     filterList()
     return
   else:
@@ -955,13 +983,13 @@ proc opSplit(name: auto) =
   twoParameters(name)
   oneQuote(name)
   aggregateAsSecond(name)
-  let b = cast[List](pop())
+  let b = cast[vm.List](pop())
   var a1, a2: Value
-  if peek() of List:
+  if peek() of vm.List:
     (a1, a2) = splitList(b)
-  elif peek() of Set:
+  elif peek() of vm.Set:
     (a1, a2) = splitSet(b)
-  elif peek() of String:
+  elif peek() of vm.String:
     (a1, a2) = splitString(b)
   push(a1)
   push(a2)
@@ -981,7 +1009,7 @@ proc opHelp(name: auto) =
 proc opHelpdetail(name: auto) =
   oneParameter(name)
   listOnTop(name)
-  let a = cast[List](pop())
+  let a = cast[vm.List](pop())
   for x in items(a):
     let id = $x
     if helptable.hasKey(id):
@@ -1073,6 +1101,13 @@ method eval*(x: Ident) =
   of LTE: opLte(LTE)
   of EQ: opEq(EQ)
   of NEQ: opNeq(NEQ)
+  of opnames.INTEGER: opInteger(opnames.INTEGER)
+  of opNames.FLOAT: opFloat(opnames.FLOAT)
+  of opnames.CHAR: opChar(opnames.CHAR)
+  of opnames.LOGICAL: opLogical(opnames.LOGICAL)
+  of opnames.SET: opSet(opnames.SET)
+  of opnames.STRING: opString(opnames.STRING)
+  of opnames.LIST: opList(opnames.LIST)
   of I: opI(I)
   of X: opX(X)
   of DIP: opDip(DIP)
