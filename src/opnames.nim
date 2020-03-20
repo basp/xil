@@ -139,3 +139,4 @@ const
   # misc
   HELP* = "help"
   HELPDETAIL* = "helpdetail"
+  QUIT* = "quit"

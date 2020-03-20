@@ -1132,6 +1132,9 @@ proc opHelpdetail(name: auto) =
       let line = fmt"{id}  :  {usrtable[id].term}"
       stdout.writeLine(line)
 
+proc opQuit(name: auto) =
+  quit(0)
+
 method eval*(x: Value) {.base.} = push(x)
 
 method eval*(x: Usr) = usrtable[x.id.val] = x
@@ -1252,6 +1255,7 @@ method eval*(x: Ident) =
   of TREEREC: opTreerec(TREEREC)
   of HELP: opHelp(HELP)
   of HELPDETAIL: opHelpdetail(HELPDETAIL)
+  of QUIT: opQuit(QUIT)
   else:
     let msg = "undefined symbol `" & $x & "`"
     raiseRuntimeError(msg)
