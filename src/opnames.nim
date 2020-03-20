@@ -91,6 +91,10 @@ const
   SET* = "set"
   STRING* = "string"
   LIST* = "list"
+  LEAF* = "leaf"
+  USER* = "user"
+
+  # combinators
   I* = "i"
   X* = "x" 
   DIP* = "dip"
@@ -105,6 +109,13 @@ const
   CLEAVE* = "cleave"
   BRANCH* = "branch"
   IFTE* = "ifte"
+  IFINTEGER* = "ifinteger"
+  IFCHAR* = "ifchar"
+  IFLOGICAL* = "iflogical"
+  IFSET* = "ifset"
+  IFSTRING* ="ifstring"
+  IFLIST* = "iflist"
+  IFFLOAT* = "iffloat"
   COND* = "cond"
   WHILE* = "while"
   LINREC* = "linrec"
@@ -122,5 +133,9 @@ const
   SPLIT* = "split"
   SOME* = "some"
   ALL* = "all"
+  TREESTEP* = "treestep"
+  TREEREC* = "treerec"
+
+  # misc
   HELP* = "help"
   HELPDETAIL* = "helpdetail"

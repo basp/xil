@@ -740,8 +740,23 @@ proc opIfte(name: auto) =
 proc opCond(name: auto) =
   raiseRuntimeError("not implemented")
 
+# while      :  [B] [D]  ->  ...
+# While executing B yields true executes D.
 proc opWhile(name: string) =
-  raiseRuntimeError("not implemented")
+  twoParameters(name)
+  twoQuotes(name)
+  let d = cast[List](pop())
+  let b = cast[List](pop())
+  saved = stack
+  while true:
+    stack = saved
+    execTerm(b)
+    if not isThruthy(peek()):
+      break
+    stack = saved
+    execTerm(d)
+    saved = stack
+  stack = saved
 
 proc opLinrec(name: auto) =
   fourParameters(name)
@@ -1015,13 +1030,16 @@ proc splitString(b: List): (Value, Value) =
   let a1 = newString("")
   let a2 = newString("")
   let a = cast[String](pop())
+  saved = stack
   for x in items(a):
+    stack = saved
     push(newChar(x))
     execTerm(b)
     if isThruthy(pop()):
       a1.val &= x
     else:
       a2.val &= x
+  stack = saved
   (a1, a2)
 
 proc splitList(b: List): (Value, Value) =
@@ -1044,14 +1062,16 @@ proc splitSet(b: List): (Value, Value) =
   let a1 = newSet()
   let a2 = newSet()
   let a = cast[Set](pop())
+  saved = stack
   for x in items(a):
+    stack = saved
     push(newInt(x))
     execTerm(b)
     if isThruthy(pop()):
       a1.add(x)
     else:
       a2.add(x)
-  
+  stack = saved
   (a1, a2)
 
 # split      :  A [B]  ->  A1 A2
@@ -1072,6 +1092,17 @@ proc opSplit(name: auto) =
     raiseRuntimeError("tilt")
   push(a1)
   push(a2)
+
+# treestep      :  T [P]  ->  ...
+# Recursively traverses leaves of tree T, executes P for each leaf.
+proc opTreestep(name: auto) =
+  discard
+
+# treerec      :  T [O] [C]  ->  ...
+# T is a tree. If T is a leaf, executes O. 
+# Else executes [[O] [C] treerec] C.
+proc opTreerec(name: auto) =
+  discard
 
 proc opHelp(name: auto) =
   var len = 0
@@ -1217,6 +1248,8 @@ method eval*(x: Ident) =
   of PRIMREC: opPrimrec(PRIMREC)
   of FILTER: opFilter(FILTER)
   of SPLIT: opSplit(SPLIT)
+  of TREESTEP: opTreestep(TREESTEP)
+  of TREEREC: opTreerec(TREEREC)
   of HELP: opHelp(HELP)
   of HELPDETAIL: opHelpdetail(HELPDETAIL)
   else:
