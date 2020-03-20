@@ -437,7 +437,7 @@ proc opPeek(name: string) {.inline.} =
   oneParameter(name)
   let x = peek()
   let ss = $len(stack)
-  echo ':'.repeat(len(ss) + 1) & "> " & $x
+  echo ':'.repeat(len(ss)) & "> " & $x
 
 proc opCons(name: auto) {.inline.} =
   twoParameters(name)
@@ -483,6 +483,16 @@ proc opSize(name: auto) {.inline.} =
   aggregateOnTop(name)
   let a = pop()
   push(size(a))
+
+# opcase      :  X [..[X Xs]..]  ->  [Xs]
+# Indexing on type of X, returns the list [Xs].
+proc opOpcase(name: auto) =
+  discard
+
+# case      :  X [..[X Y]..]  ->  Y i
+# Indexing on the value of X, execute the matching Y.
+proc opCase(name: auto) =
+  discard
 
 proc popUncons(name: auto): (Value, Value) {.inline.} =
   oneParameter(name)
@@ -772,8 +782,42 @@ proc opTailrec(name: auto) =
       tailrecaux()
   tailrecaux()
 
+# binrec      :  [B] [T] [R1] [R2]  ->  ...
+# Executes P. If that yields true, executes T.
+# Else uses R1 to produce two intermediates, recurses on both,
+# then executes R2 to combines their results.
 proc opBinrec(name: auto) =
-  raiseRuntimeError("not implemented")
+  fourParameters(name)
+  fourQuotes(name)
+  let
+    r2 = cast[vm.List](pop())
+    r1 = cast[vm.List](pop())
+    t = cast[vm.List](pop())
+    b = cast[vm.List](pop())
+  proc binrecaux() =
+    saved = stack
+    execTerm(b)
+    let res = peek()
+    stack = saved
+    if isThruthy(res):
+      execTerm(t)
+    else:
+      # The r1 proggrma leaves two items 
+      # on the stack and we need to recurse
+      # on both of them
+      execTerm(r1)
+      # So we first pop the first (top) value
+      # and recurse on the second value first
+      let v1 = pop()
+      binrecaux()
+      # Now we push back the first (top) value
+      # and recurse on that as well
+      push(v1)
+      binrecaux()
+      # Finally, we execute the r2 program
+      # which combines the results
+      execTerm(r2)
+  binrecaux()
 
 proc opGenrec(name: auto) =
   fourParameters(name)
@@ -812,30 +856,39 @@ proc opStep(name: auto) =
     push(x)
     execTerm(p)
 
+proc foldString(v0: Value, p: List) =
+  let a = cast[vm.String](pop())
+  push(v0)
+  for x in items(a):
+    push(newChar(x))
+    execTerm(p)  
+
+proc foldSet(v0: Value, p: List) =
+  let a = cast[vm.Set](pop())
+  push(v0)
+  for x in items(a):
+    push(newInt(x))
+    execTerm(p)
+
+proc foldList(v0: Value, p: List) =
+  let a = cast[vm.List](pop())
+  push(v0)
+  for x in items(a):
+    push(x)
+    execTerm(p)
+
 # A V0 [P]  ->  V
 proc opFold(name: auto) =
   threeParameters(name)
   oneQuote(name)
   let p = cast[vm.List](pop())
   let v0 = pop()
-  if peek() of vm.List:
-    let a = cast[vm.List](pop())
-    push(v0)
-    for x in items(a):
-      push(x)
-      execTerm(p)
-  if peek() of vm.Set:
-    let a = cast[vm.Set](pop())
-    push(v0)
-    for x in items(a):
-      push(newInt(x))
-      execTerm(p)
   if peek() of vm.String:
-    let a = cast[vm.String](pop())
-    push(v0)
-    for x in items(a):
-      push(newChar(x))
-      execTerm(p)  
+    foldString(v0, p)
+  if peek() of vm.Set:
+    foldSet(v0, p)
+  if peek() of vm.List:
+    foldList(v0, p)
 
 proc opMap(name: auto) =
   twoParameters(name)
@@ -916,6 +969,19 @@ proc filterString() =
     stack = saved
   push(a1)
 
+proc filterSet() =
+  var a1 = newSet()
+  let p = cast[List](pop())
+  let a = cast[Set](pop())
+  saved = stack
+  for x in items(a):
+    push(newInt(x))
+    execTerm(p)
+    if isThruthy(peek()):
+      a1.add(x)
+    stack = saved
+  push(a1)
+
 proc filterList() =
   var a1 = newList(@[])
   let p = cast[List](pop())
@@ -935,6 +1001,9 @@ proc opFilter(name: auto) =
   aggregateAsSecond(name)
   if stack.head.next.value of vm.String:
     filterString()
+    return
+  if stack.head.next.value of vm.Set:
+    filterSet()
     return
   if stack.head.next.value of vm.List:
     filterList()
@@ -959,13 +1028,16 @@ proc splitList(b: List): (Value, Value) =
   let a1 = newList()
   let a2 = newList()
   let a = cast[List](pop())
+  saved = stack
   for x in items(a):
+    stack = saved
     push(x)
     execTerm(b)
     if isThruthy(pop()):
       a1.add(x)
     else:
       a2.add(x)
+  stack = saved
   (a1, a2)
 
 proc splitSet(b: List): (Value, Value) =
@@ -979,6 +1051,7 @@ proc splitSet(b: List): (Value, Value) =
       a1.add(x)
     else:
       a2.add(x)
+  
   (a1, a2)
 
 # split      :  A [B]  ->  A1 A2
@@ -1093,6 +1166,8 @@ method eval*(x: Ident) =
   of AT: opAt(AT)
   of OF: opOf(OF)
   of SIZE: opSize(SIZE)
+  of OPCASE: opOpcase(OPCASE)
+  of CASE: opCase(CASE)
   of UNCONS: opUncons(UNCONS)
   of UNSWONS: opUnswons(UNSWONS)
   of CONCAT: opConcat(CONCAT)

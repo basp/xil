@@ -1,6 +1,7 @@
 const 
   NEWSTACK* = "newstack"
   STACK* = "stack"
+  UNSTACK* = "unstack"
 
   # operators
   ID* = "id"
@@ -61,11 +62,15 @@ const
   AT* = "at"
   OF* = "of"
   SIZE* = "size"
-  REVERSE* = "reverse"
+  OPCASE* = "opcase"
+  CASE* = "case"
   UNCONS* = "uncons"
   UNSWONS* = "unswons"
+  DROP* = "drop"
+  TAKE* = "take"
   CONCAT* = "concat"
   ENCONCAT* = "enconcat"
+  REVERSE* = "reverse"
   NAME* = "name"
   INTERN* = "intern"
   BODY* = "body"
