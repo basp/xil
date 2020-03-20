@@ -302,9 +302,53 @@ h(BODY => "U  ->  [P]", @[
   "Quotation [P] is the body of user-defined symbol U."
 ])
 
+h(NULL => "X  ->  B", @[
+  "Tests for empty aggregate X or zero numeric."
+])
+
+h(SMALL => "X  ->  B", @[
+  "Tests whether aggregate X has 0 or 1 members, or numeric 0 or 1."
+])
+
+h(GTE => "X Y  ->  B", @[
+  "Tests whether X greater than or equal to Y.",
+])
+
+h(GT => "X Y  ->  B", @[
+  "Tests whether X greater than Y.",
+])
+
+h(LTE => "X Y  ->  B", @[
+  "Tests whether X less than or equal to Y.",
+])
+
+h(LT => "X Y  ->  B", @[
+  "Tests whether X less than Y.",
+])
+
+h(NEQ => "X Y  ->  B", @[
+  "Tests whether X not equal to Y.",
+])
+
+h(EQ => "X Y  ->  B", @[
+  "Tests whether X equal to Y."
+])
+
 h(CMP => "X Y  ->  I", @[
   "I (=-1,0,+1) is the comparison of X and Y.",
   "The values correspond to the predicates <=, =, >=."
+])
+
+h(I => "[P]  ->  ...", @[
+  "Executes P. So, [P] i  ==  P."
+])
+
+h(X => "[P] I  ->  ...", @[
+  "Executes P without popping [P]. So, [P] x  ==  [P] P."
+])
+
+h(DIP => "X [P]  ->  ... X", @[
+  "Saves X, executes P, pushes X back."
 ])
 
 h(QUIT => "->", @[

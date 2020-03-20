@@ -13,6 +13,7 @@ type
     vkSet,
     vkList,
     vkIdent,
+    vkFile,
     vkUsr
   Value* = ref object of RootObj
     kind*: ValueKind
@@ -35,6 +36,9 @@ type
   Usr* = ref object of Value
     id*: Ident
     term*: List
+  File* = ref object of Value
+    path*: string
+    f*: system.File
   RuntimeException* = object of Exception
 
 proc raiseRuntimeError*(msg: string) =
@@ -78,6 +82,9 @@ proc newUsr*(id: Ident, term: seq[Value]): Usr =
 
 proc newUsr*(id: Ident, term: List): Usr =
   Usr(kind: vkUsr, id: id, term: term)
+
+proc newFile*(path: string): vm.File =
+  vm.File(path: path, f: open(path))
 
 method isThruthy*(x: Value): bool {.base, inline.} = false
 method isThruthy*(x: Int): bool {.inline.} = x.val != 0

@@ -550,6 +550,8 @@ proc opName(name: auto) =
     push(newString("set"))
   of vkList:
     push(newString("list"))
+  of vkFile:
+    push(newString("file"))    
   of vkIdent:
     let id = cast[Ident](x)
     push(newString(id.val))
