@@ -518,6 +518,13 @@ proc opConcat(name: auto) {.inline.} =
   let a = pop()
   push(a.concat(b))
 
+proc opEnconcat(name: auto) {.inline.} =
+  threeParameters(name)
+  sameTwoKinds(name)
+  opSwapd(name)
+  opCons(name)
+  opConcat(name)
+
 proc opReverse(name: auto) {.inline.} =
   oneParameter(name)
   aggregateOnTop(name)
@@ -1132,8 +1139,7 @@ proc opHelpdetail(name: auto) =
       let line = fmt"{id}  :  {usrtable[id].term}"
       stdout.writeLine(line)
 
-proc opQuit(name: auto) =
-  quit(0)
+proc opQuit(name: auto) = quit(0)
 
 method eval*(x: Value) {.base.} = push(x)
 
@@ -1205,6 +1211,7 @@ method eval*(x: Ident) =
   of UNCONS: opUncons(UNCONS)
   of UNSWONS: opUnswons(UNSWONS)
   of CONCAT: opConcat(CONCAT)
+  of ENCONCAT: opEnconcat(ENCONCAT)
   of REVERSE: opReverse(REVERSE)
   of NAME: opName(NAME)
   of INTERN: opIntern(INTERN)

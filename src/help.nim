@@ -306,3 +306,7 @@ h(CMP => "X Y  ->  I", @[
   "I (=-1,0,+1) is the comparison of X and Y.",
   "The values correspond to the predicates <=, =, >=."
 ])
+
+h(QUIT => "->", @[
+  "Exit from Xil."
+])
