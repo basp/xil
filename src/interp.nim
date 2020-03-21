@@ -484,15 +484,46 @@ proc opSize(name: auto) {.inline.} =
   let a = pop()
   push(size(a))
 
+proc checkNonEmptyList(x: Value, name: auto) =
+  if x.kind != vkList:
+    raiseExecError("non-empty internal list", name)
+  let xs = cast[vm.List](x)
+  if len(xs) < 1:
+    raiseExecError("non-empty internal list", name)
+
 # opcase      :  X [..[X Xs]..]  ->  [Xs]
 # Indexing on type of X, returns the list [Xs].
 proc opOpcase(name: auto) =
-  discard
+  twoParameters(name)
+  listOnTop(name)
+  let a = cast[vm.List](pop())
+  let x = pop()
+  var xs: vm.List
+  for list in items(a):
+    checkNonEmptyList(list, name)
+    let f = first(list)
+    xs = cast[vm.List](rest(list))
+    if x.kind == f.kind:
+      push(xs)
+      return
+  push(xs)
 
 # case      :  X [..[X Y]..]  ->  Y i
 # Indexing on the value of X, execute the matching Y.
 proc opCase(name: auto) =
-  discard
+  twoParameters(name)
+  listOnTop(name)
+  let a = cast[vm.List](pop())
+  let x = pop()
+  var y: vm.List
+  for list in items(a):
+    checkNonEmptyList(list, name)
+    let f = first(list)
+    y = cast[vm.List](rest(list))
+    if x == f:
+      execTerm(y)
+      return
+  execTerm(y)
 
 proc popUncons(name: auto): (Value, Value) {.inline.} =
   oneParameter(name)
