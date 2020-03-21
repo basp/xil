@@ -503,7 +503,7 @@ proc opOpcase(name: auto) =
     checkNonEmptyList(list, name)
     let f = first(list)
     xs = cast[vm.List](rest(list))
-    if x.kind == f.kind:
+    if name(x) == name(f):
       push(xs)
       return
   push(xs)
@@ -576,33 +576,36 @@ proc opReverse(name: auto) {.inline.} =
   let a = pop()
   push(a.reverse())
 
-proc opName(name: auto) =
-  let x = pop()
+proc name(x: Value): string =
   case x.kind
   of vkNone:
-    push(newString("none"))
+    "none"
   of vkBool:
-    push(newString("bool"))
+    "bool"
   of vkChar:
-    push(newString("char"))
+    "char"
   of vkInt:
-    push(newString("int"))
+    "int"
   of vkFloat:
-    push(newString("float"))
+    "float"
   of vkString:
-    push(newString("string"))
+    "string"
   of vkSet:
-    push(newString("set"))
+    "set"
   of vkList:
-    push(newString("list"))
+    "list"
   of vkFile:
-    push(newString("file"))    
+    "file"    
   of vkIdent:
     let id = cast[Ident](x)
-    push(newString(id.val))
+    id.val
   of vkUsr:
     let usr = cast[Usr](x)
-    push(newString(usr.id.val))
+    usr.id.val
+
+proc opName(name: auto) =
+  let x = pop()
+  push(newString(name(x)))
 
 proc opIntern(name: auto) =
   oneParameter(name)
