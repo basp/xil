@@ -541,6 +541,20 @@ proc opUnswons(name: auto) {.inline.} =
   push(rest)
   push(first)
 
+proc opDrop(name: auto) =
+  twoParameters(name)
+  aggregateAsSecond(name)
+  let n = cast[vm.Int](pop())
+  let a = cast[vm.List](pop())
+  push(drop(a, n.val))
+
+proc opTake(name: auto) =
+  twoParameters(name)
+  aggregateAsSecond(name)
+  let n = cast[vm.Int](pop())
+  let a = cast[vm.List](pop())
+  push(take(a, n.val))
+
 proc opConcat(name: auto) {.inline.} =
   twoParameters(name)
   twoAggregates(name)
@@ -1243,6 +1257,8 @@ method eval*(x: Ident) =
   of CASE: opCase(CASE)
   of UNCONS: opUncons(UNCONS)
   of UNSWONS: opUnswons(UNSWONS)
+  of DROP: opDrop(DROP)
+  of TAKE: opTake(TAKE)
   of CONCAT: opConcat(CONCAT)
   of ENCONCAT: opEnconcat(ENCONCAT)
   of REVERSE: opReverse(REVERSE)

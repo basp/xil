@@ -570,8 +570,26 @@ method concat*(a, b: List): Value =
 
 method concat*(a, b: Set): Value = a or b
 
+method take*(a: Value, n: int): Value {.base.} =
+  raiseRuntimeError("badargs for `take`")
+
+method take*(a: List, n: int): Value =
+  let xs = toSeq(items(a))
+  if n > len(xs):
+    raiseRuntimeError("index out of range")
+  newList(xs[0..<n])
+
+method drop*(a: Value, n: int): Value {.base.} =
+  raiseRuntimeError("badargs for `take`")
+
+method drop*(a: List, n: int): Value =
+  let xs = toSeq(items(a))
+  if n > len(xs):
+    raiseRuntimeError("index out of range")
+  newList(xs[n..<len(a)])
+
 method reverse*(a: Value): Value {.base.} =
-  raiseRuntimeError("badargs for `reverse`")
+  raiseRuntimeError("badarg for `reverse`")
 
 method reverse*(a: Set): Value = a
 
