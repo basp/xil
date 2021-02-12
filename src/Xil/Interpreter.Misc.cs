@@ -14,7 +14,7 @@ namespace Xil
                 .Validate(this.stack);
 
             var x = this.Pop();
-            this.@out(this.stack.Count, x.ToString());
+            this.print(this.stack.Count, x.ToString());
         }
     }
 }

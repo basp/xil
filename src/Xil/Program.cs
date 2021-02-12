@@ -6,18 +6,18 @@
 
     internal class Program
     {
-        private static void In(int size)
+        private static void Prompt(int stackSize)
         {
             Console.Write("[");
-            Console.Write(size);
+            Console.Write(stackSize);
             Console.Write("]");
             Console.Write(" < ");
         }
 
-        private static void Out(int size, string value)
+        private static void Print(int stackSize, string value)
         {
             Console.Write("[");
-            Console.Write(size);
+            Console.Write(stackSize);
             Console.Write("]");
             Console.Write(" > ");
             Console.WriteLine(value);
@@ -25,11 +25,11 @@
 
         private static void Main(string[] args)
         {
-            var interpreter = Interpreter.Create(Out);
+            var interpreter = Interpreter.Create(Print);
             while (true)
             {
                 var stack = interpreter.GetStack();
-                In(stack.Length);
+                Prompt(stack.Length);
                 var source = Console.ReadLine();
                 try
                 {

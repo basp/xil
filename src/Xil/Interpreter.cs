@@ -103,13 +103,24 @@ namespace Xil
 
         private IDictionary<string, Builtin> builtins;
 
-        private Action<int, string> @out;
+        private Action<int, string> print;
 
-        private Interpreter() { }
+        private Interpreter(Action<int, string> print)
+        {
+            this.print = print;
+        }
 
         public static IInterpreter Create(Action<int, string> @out)
         {
-            BuiltinAttribute GetBuiltinAttribute(MethodInfo method) =>
+            var interpreter = new Interpreter(@out);
+
+            Action CreateAction(MethodInfo method) =>
+                (Action)Delegate.CreateDelegate(
+                    typeof(Action),
+                    interpreter,
+                    method);
+
+            BuiltinAttribute GetAttribute(MethodInfo method) =>
                 method
                     .GetCustomAttributes(typeof(BuiltinAttribute), false)
                     .Cast<BuiltinAttribute>()
@@ -120,25 +131,23 @@ namespace Xil
                 .Select(x => new
                 {
                     Method = x,
-                    Attr = GetBuiltinAttribute(x),
+                    Attr = GetAttribute(x),
                 })
                 .Where(x => x.Attr != null);
 
-            var interpreter = new Interpreter();
-            var builtins = new Dictionary<string, Builtin>();
-            foreach (var m in ops)
-            {
-                var action = (Action)Delegate.CreateDelegate(
-                    typeof(Action),
-                    interpreter,
-                    m.Method);
+            interpreter.builtins = ops
+                .Select(x => new
+                {
+                    Attr = x.Attr,
+                    Action = CreateAction(x.Method),
+                })
+                .ToDictionary(
+                    keySelector: x => x.Attr.Name,
+                    elementSelector: x => new Builtin(
+                        x.Action,
+                        x.Attr.Effect,
+                        x.Attr.Notes));
 
-                var bi = new Builtin(action, m.Attr.Effect, m.Attr.Notes);
-                builtins.Add(m.Attr.Name, bi);
-            }
-
-            interpreter.@out = @out;
-            interpreter.builtins = builtins;
             return interpreter;
         }
 
@@ -1036,7 +1045,7 @@ namespace Xil
                 .Validate(this.stack);
 
             var x = this.Peek();
-            this.@out(this.stack.Count, x.ToString());
+            this.print(this.stack.Count, x.ToString());
         }
 
         private void Puts_()
@@ -1047,7 +1056,7 @@ namespace Xil
                 .Validate(this.stack);
 
             var x = this.Pop<Value.String>();
-            this.@out(this.stack.Count, x.Value);
+            this.print(this.stack.Count, x.Value);
         }
 
         private void Import_()
