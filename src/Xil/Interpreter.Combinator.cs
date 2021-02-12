@@ -10,7 +10,7 @@ namespace Xil
         {
             new Validator("dip")
                 .TwoParameters()
-                .OneQuote()
+                .QuoteOnTop()
                 .Validate(this.stack);
 
             var p = this.Pop<Value.List>();

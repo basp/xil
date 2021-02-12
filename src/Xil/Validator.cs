@@ -76,27 +76,27 @@ namespace Xil
                 xs => xs.Length > 4,
                 "five parameters");
 
-        public Validator OneQuote() =>
+        public Validator QuoteOnTop() =>
             this.AddRule(
                 xs => xs[0].Kind == ValueKind.List,
                 "quotation as top parameter");
 
-        public Validator TwoQuotes() => this.OneQuote()
+        public Validator TwoQuotesOnTop() => this.QuoteOnTop()
             .AddRule(
                 xs => xs[1].Kind == ValueKind.List,
                 "quotation as second parameter");
 
-        public Validator ThreeQuotes() => this.TwoQuotes()
+        public Validator ThreeQuotesOnTop() => this.TwoQuotesOnTop()
             .AddRule(
                 xs => xs[2].Kind == ValueKind.List,
                 "quotation as third parameter");
 
-        public Validator FourQuotes() => this.ThreeQuotes()
+        public Validator FourQuotesOnTop() => this.ThreeQuotesOnTop()
             .AddRule(
                 xs => xs[3].Kind == ValueKind.List,
                 "quotation as fourth parameter");
 
-        public Validator SameTwoTypes() =>
+        public Validator SameTwoTypesOnTop() =>
             this.AddRule(
                 xs => xs[0].Kind == xs[1].Kind,
                 "two parameters of the same type");
@@ -137,7 +137,7 @@ namespace Xil
                 xs => xs[0].Kind == ValueKind.Char,
                 "character");
 
-        public Validator TwoIntegers() =>
+        public Validator TwoIntegersOnTop() =>
             this.AddRule(
                 xs => xs[0].Kind == ValueKind.Int &&
                       xs[1].Kind == ValueKind.Int,

@@ -389,7 +389,7 @@ namespace Xil
             }
 
             validator
-                .SameTwoTypes()
+                .SameTwoTypesOnTop()
                 .OrdinalOnTop()
                 .Validate(this.stack);
 
@@ -575,7 +575,7 @@ namespace Xil
             new Validator("concat")
                 .TwoParameters()
                 .TwoAggregates()
-                .SameTwoTypes()
+                .SameTwoTypesOnTop()
                 .Validate(this.stack);
 
             var y = this.Pop<IAggregate>();
@@ -587,7 +587,7 @@ namespace Xil
         {
             new Validator("enconcat")
                 .ThreeParameters()
-                .SameTwoTypes()
+                .SameTwoTypesOnTop()
                 .Validate(this.stack);
 
             this.Swapd_();
@@ -651,7 +651,7 @@ namespace Xil
         {
             new Validator("i")
                 .OneParameter()
-                .OneQuote()
+                .QuoteOnTop()
                 .Validate(this.stack);
 
             var p = this.Pop<Value.List>();
@@ -662,7 +662,7 @@ namespace Xil
         {
             new Validator("x")
                 .OneParameter()
-                .OneQuote()
+                .QuoteOnTop()
                 .Validate(this.stack);
 
             var p = this.Peek<Value.List>();
@@ -673,7 +673,7 @@ namespace Xil
         {
             new Validator("step")
                 .TwoParameters()
-                .OneQuote()
+                .QuoteOnTop()
                 .AggregateAsSecond()
                 .Validate(this.stack);
 
@@ -689,7 +689,7 @@ namespace Xil
         private void Nullary_()
         {
             new Validator("nullary")
-                .OneQuote()
+                .QuoteOnTop()
                 .Validate(this.stack);
 
             var p = this.Pop<Value.List>();
@@ -704,7 +704,7 @@ namespace Xil
         {
             new Validator("unary")
                 .TwoParameters()
-                .OneQuote()
+                .QuoteOnTop()
                 .Validate(this.stack);
 
             var p = this.Pop<Value.List>();
@@ -721,7 +721,7 @@ namespace Xil
         {
             new Validator("unary2")
                 .ThreeParameters()
-                .OneQuote()
+                .QuoteOnTop()
                 .Validate(this.stack);
 
             var p = this.Pop<Value.List>();
@@ -744,7 +744,7 @@ namespace Xil
         {
             new Validator("branch")
                 .ThreeParameters()
-                .TwoQuotes()
+                .TwoQuotesOnTop()
                 .Validate(this.stack);
 
             var f = this.Pop<Value.List>();
@@ -764,7 +764,7 @@ namespace Xil
         {
             new Validator("iflist")
                 .TwoParameters()
-                .TwoQuotes()
+                .TwoQuotesOnTop()
                 .Validate(this.stack);
 
             var f = this.Pop<Value.List>();
@@ -784,7 +784,7 @@ namespace Xil
         {
             new Validator("ifte")
                 .ThreeParameters()
-                .ThreeQuotes()
+                .ThreeQuotesOnTop()
                 .Validate(this.stack);
 
             var f = this.Pop<Value.List>();
@@ -863,7 +863,7 @@ namespace Xil
         {
             new Validator("map")
                 .TwoParameters()
-                .OneQuote()
+                .QuoteOnTop()
                 .ListAsSecond()
                 .Validate(this.stack);
 
@@ -886,7 +886,7 @@ namespace Xil
         {
             new Validator("filter")
                 .TwoParameters()
-                .OneQuote()
+                .QuoteOnTop()
                 .ListAsSecond()
                 .Validate(this.stack);
 
@@ -914,7 +914,7 @@ namespace Xil
         {
             new Validator("some")
                 .TwoParameters()
-                .OneQuote()
+                .QuoteOnTop()
                 .ListAsSecond()
                 .Validate(this.stack);
 
@@ -942,7 +942,7 @@ namespace Xil
         {
             new Validator("all")
                 .TwoParameters()
-                .OneQuote()
+                .QuoteOnTop()
                 .ListAsSecond()
                 .Validate(this.stack);
 
@@ -969,7 +969,7 @@ namespace Xil
         {
             new Validator("infra")
                 .TwoParameters()
-                .OneQuote()
+                .QuoteOnTop()
                 .ListAsSecond()
                 .Validate(this.stack);
 
@@ -987,7 +987,7 @@ namespace Xil
         {
             new Validator("times")
                 .TwoParameters()
-                .OneQuote()
+                .QuoteOnTop()
                 .IntegerAsSecond()
                 .Validate(this.stack);
 
@@ -1003,7 +1003,7 @@ namespace Xil
         {
             new Validator("linrec")
                 .FourParameters()
-                .FourQuotes()
+                .FourQuotesOnTop()
                 .Validate(this.stack);
 
             var r2 = this.Pop<Value.List>();
