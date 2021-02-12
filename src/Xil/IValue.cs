@@ -1,6 +1,6 @@
 namespace Xil
 {
-    public interface IValue
+    public interface IValue : ILogical
     {
         ValueKind Kind { get; }
 
@@ -11,13 +11,5 @@ namespace Xil
         // bool IsNull { get; }
 
         IValue Clone();
-
-        IValue Not();
-
-        IValue And(IValue value);
-
-        IValue Or(IValue value);
-
-        IValue Xor(IValue value);
     }
 }

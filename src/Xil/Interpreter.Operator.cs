@@ -420,6 +420,10 @@ namespace Xil
 
         private void Sinh_() => FloatMath("sinh");
 
+        [Builtin(
+            "sqrt",
+            "F -> G",
+            "G is the square root of F.")]
         private void Sqrt_() => FloatMath("sqrt");
 
         private void Tan_() => FloatMath("tan");
@@ -507,6 +511,10 @@ namespace Xil
             this.Cons_();
         }
 
+        [Builtin(
+            "first",
+            "A -> F",
+            "F is the first member of of the non-empty aggregate A.")]
         private void First_()
         {
             var validator = new Validator("first")
@@ -518,6 +526,10 @@ namespace Xil
             this.Push(x.First());
         }
 
+        [Builtin(
+            "rest",
+            "A -> R",
+            "R is the non-empty aggregate A with its first member removed.")]
         private void Rest_()
         {
             new Validator("rest")
