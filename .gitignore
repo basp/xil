@@ -1,5 +1,3 @@
 .vscode
-nimcache/
-nimblecache/
-htmldocs/
-*.exe
+*.dll
+*.pdb
