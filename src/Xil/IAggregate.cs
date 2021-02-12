@@ -28,8 +28,8 @@ namespace Xil
         /// Insert a value in the aggregate.
         /// </summary>
         /// <remarks>
-        /// In the case of lists the value will be placed in front of the
-        /// rest of the list.
+        /// In the case of lists and strings the value will be placed 
+        /// in front of the rest of the aggregate.
         /// </remarks>
         IValue Cons(IValue value);
 
