@@ -20,13 +20,13 @@ namespace Xil
 
         Dot,
 
-        LBrack,
+        OpenBracket,
 
-        RBrack,
+        CloseBracket,
 
-        LBrace,
+        OpenBrace,
 
-        RBrace,
+        CloseBrace,
 
         True,
 

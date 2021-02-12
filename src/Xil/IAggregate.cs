@@ -2,7 +2,7 @@ namespace Xil
 {
     using System.Collections.Generic;
     
-    public interface IAggregate : IValue
+    public interface IAggregate : IValue, IEnumerable<IValue>
     {
         int Size { get; }
 
@@ -22,6 +22,6 @@ namespace Xil
 
         IAggregate Take(int n);
 
-        IValue At(int i);
+        IValue Index(int i);
     }
 }

@@ -1,6 +1,7 @@
 namespace Xil
 {
     using System;
+    using System.Globalization;
 
     public abstract partial class Value
     {
@@ -15,12 +16,34 @@ namespace Xil
 
             public double Value { get; }
 
+            public static Value.Float operator -(Value.Float x) =>
+                new Value.Float(-x.Value);
+
+            public static Value.Float operator +(Value.Float x, Value.Float y) =>
+                new Value.Float(x.Value + y.Value);
+
+            public static Value.Float operator -(Value.Float x, Value.Float y) =>
+                new Value.Float(x.Value - y.Value);
+
+            public static Value.Float operator *(Value.Float x, Value.Float y) =>
+                new Value.Float(x.Value * y.Value);
+
+            public static Value.Float operator /(Value.Float x, Value.Float y) =>
+                new Value.Float(x.Value / y.Value);
+
+            public static Value.Float operator %(Value.Float x, Value.Float y) =>
+                new Value.Float(x.Value % y.Value);
+
+            public static explicit operator Value.Int(Value.Float x) =>
+                new Value.Int((int)x.Value);
+
             public override IValue Clone() => new Float(this.Value);
 
-            public override string ToString() => this.Value.ToString();
+            public override string ToString() =>
+                this.Value.ToString(CultureInfo.InvariantCulture);
 
             public override int GetHashCode() =>
-                System.HashCode.Combine(this.Kind, this.Value.GetHashCode());
+                HashCode.Combine(this.Kind, this.Value.GetHashCode());
 
             public override bool Equals(object obj)
             {
@@ -41,40 +64,40 @@ namespace Xil
             public IValue Add(IValue value) =>
                 value switch
                 {
-                    Value.Int y => new Value.Float(this.Value - (long)y.Value),
-                    Value.Float y => new Value.Float(this.Value - y.Value),
+                    Value.Int y => this + y,
+                    Value.Float y => this + y,
                     _ => throw new NotSupportedException(),
                 };
 
             public IValue Divide(IValue value) =>
                 value switch
                 {
-                    Value.Int y => new Value.Float(this.Value - (long)y.Value),
-                    Value.Float y => new Value.Float(this.Value - y.Value),
+                    Value.Int y => this / y,
+                    Value.Float y => this / y,
                     _ => throw new NotSupportedException(),
                 };
 
             public IValue Mul(IValue value) =>
                 value switch
                 {
-                    Value.Int y => new Value.Float(this.Value - (long)y.Value),
-                    Value.Float y => new Value.Float(this.Value - y.Value),
+                    Value.Int y => this * y,
+                    Value.Float y => this * y,
                     _ => throw new NotSupportedException(),
                 };
 
             public IValue Sub(IValue value) =>
                 value switch
                 {
-                    Value.Int y => new Value.Float(this.Value - (long)y.Value),
-                    Value.Float y => new Value.Float(this.Value - y.Value),
+                    Value.Int y => this - y,
+                    Value.Float y => this - y,
                     _ => throw new NotSupportedException(),
                 };
 
             public IValue Rem(IValue value) =>
                 value switch
                 {
-                    Value.Int y => new Value.Float(this.Value % (long)y.Value),
-                    Value.Float y => new Value.Float(this.Value % y.Value),
+                    Value.Int y => this % y,
+                    Value.Float y => this % y,
                     _ => throw new NotSupportedException(),
                 };
 

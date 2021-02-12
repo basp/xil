@@ -1,6 +1,8 @@
 namespace Xil
 {
+    using System;
     using System.Collections.Generic;
+    using System.Globalization;
     using System.Linq;
     using Superpower;
     using Superpower.Model;
@@ -39,13 +41,14 @@ namespace Xil
         public static readonly Tokenizer<TokenKind> Tokenizer =
             new TokenizerBuilder<TokenKind>()
                 .Ignore(Character.WhiteSpace)
+                .Match(Numerics.DecimalDouble, TokenKind.Number)
                 .Match(Character.EqualTo(':'), TokenKind.Colon)
                 .Match(Character.EqualTo(';'), TokenKind.Semicolon)
                 .Match(Character.EqualTo('.'), TokenKind.Dot)
-                .Match(Character.EqualTo('{'), TokenKind.LBrace)
-                .Match(Character.EqualTo('}'), TokenKind.RBrace)
-                .Match(Character.EqualTo('['), TokenKind.LBrack)
-                .Match(Character.EqualTo(']'), TokenKind.RBrack)
+                .Match(Character.EqualTo('{'), TokenKind.OpenBrace)
+                .Match(Character.EqualTo('}'), TokenKind.CloseBrace)
+                .Match(Character.EqualTo('['), TokenKind.OpenBracket)
+                .Match(Character.EqualTo(']'), TokenKind.CloseBracket)
                 .Match(
                     Span.EqualTo("true"),
                     TokenKind.True,
@@ -54,7 +57,6 @@ namespace Xil
                     Span.EqualTo("false"),
                     TokenKind.False,
                     requireDelimiters: true)
-                .Match(Numerics.DecimalDouble, TokenKind.Number)
                 .Match(Parse.Ref(() => StringToken), TokenKind.String)
                 .Match(
                     Character.ExceptIn(Reserved).AtLeastOnce(),
@@ -78,10 +80,16 @@ namespace Xil
             Token.EqualTo(TokenKind.False).Select(CreateBool);
 
         public static readonly TokenListParser<TokenKind, Value> List =
-            from @start in Token.EqualTo(TokenKind.LBrack)
+            from @start in Token.EqualTo(TokenKind.OpenBracket)
             from factors in Parse.Ref(() => Factor).Many()
-            from @end in Token.EqualTo(TokenKind.RBrack)
+            from @end in Token.EqualTo(TokenKind.CloseBracket)
             select CreateList(factors);
+
+        public static readonly TokenListParser<TokenKind, Value> Set =
+            from @start in Token.EqualTo(TokenKind.OpenBrace)
+            from factors in Parse.Ref(() => Factor).Many()
+            from @end in Token.EqualTo(TokenKind.CloseBrace)
+            select CreateSet(factors);
 
         public static readonly TokenListParser<TokenKind, Value> Factor =
             List
@@ -94,7 +102,7 @@ namespace Xil
         public static readonly TokenListParser<TokenKind, Value[]> Term =
             Factor.Many();
 
-        public static readonly TokenListParser<TokenKind, Value.Usr> Def =
+        public static readonly TokenListParser<TokenKind, Value.Definition> Def =
              from @start in Token.EqualTo(TokenKind.Colon)
              from id in Token.EqualTo(TokenKind.Symbol)
              from factors in Parse.Ref(() => Factor).Many()
@@ -108,7 +116,7 @@ namespace Xil
                 .IgnoreMany()
             from close in Character.EqualTo('"')
             select Unit.Value;
-            
+
         private static Value CreateBool(Token<TokenKind> token) =>
             new Value.Bool(bool.Parse(token.ToStringValue()));
 
@@ -120,7 +128,7 @@ namespace Xil
                 return new Value.Int(i);
             }
 
-            var f = double.Parse(s);
+            var f = double.Parse(s, CultureInfo.InvariantCulture);
             return new Value.Float(f);
         }
 
@@ -152,7 +160,12 @@ namespace Xil
         private static Value CreateList(Value[] factors) =>
             new Value.List(factors);
 
-        private static Value.Usr CreateUsr(string id, IValue[] factors) =>
-            new Value.Usr(id, factors);
+        private static Value CreateSet(IValue[] factors)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static Value.Definition CreateUsr(string id, IValue[] factors) =>
+            new Value.Definition(id, factors);
     }
 }

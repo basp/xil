@@ -1,6 +1,7 @@
 namespace Xil
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -19,7 +20,7 @@ namespace Xil
 
             public int Size => this.Elements.Count;
 
-            public IValue At(int i) => this.Elements.ElementAt(i);
+            public IValue Index(int i) => this.Elements.ElementAt(i);
 
             public override IValue Clone()
             {
@@ -62,7 +63,6 @@ namespace Xil
                 return true;
             }
 
-
             public IValue Concat(IAggregate value) =>
                 value switch
                 {
@@ -96,6 +96,12 @@ namespace Xil
                 rest = this.Rest();
                 return this.First();
             }
+
+            public IEnumerator<IValue> GetEnumerator() =>
+                this.Elements.GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator() =>
+                this.GetEnumerator();
         }
     }
 }

@@ -5,14 +5,6 @@ namespace Xil
 
     public class Validator
     {
-        public static bool Floatable(IValue[] xs) =>
-            xs[0].Kind == ValueKind.Int || xs[0].Kind == ValueKind.Float;
-
-        public static bool Floatable2(IValue[] xs) =>
-            (xs[0].Kind == ValueKind.Float && xs[1].Kind == ValueKind.Float) ||
-            (xs[0].Kind == ValueKind.Float && xs[1].Kind == ValueKind.Int) ||
-            (xs[0].Kind == ValueKind.Int && xs[1].Kind == ValueKind.Float);
-
         private readonly string name;
 
         private readonly List<ValidationRule> rules =
@@ -50,6 +42,14 @@ namespace Xil
             var msg = GetErrorMessage(name, "internal list");
             throw new RuntimeException(msg);
         }
+        
+        public static bool Floatable(IValue[] xs) =>
+            xs[0].Kind == ValueKind.Int || xs[0].Kind == ValueKind.Float;
+
+        public static bool Floatable2(IValue[] xs) =>
+            (xs[0].Kind == ValueKind.Float && xs[1].Kind == ValueKind.Float) ||
+            (xs[0].Kind == ValueKind.Float && xs[1].Kind == ValueKind.Int) ||
+            (xs[0].Kind == ValueKind.Int && xs[1].Kind == ValueKind.Float);
 
         public Validator OneParameter() =>
             this.AddRule(

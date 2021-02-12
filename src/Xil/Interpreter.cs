@@ -6,10 +6,11 @@ namespace Xil
     using System.IO;
     using System.Linq;
     using System.Numerics;
+    using System.Reflection;
     using Superpower;
     using M = System.Math;
 
-    public class Interpreter
+    public partial class Interpreter : IInterpreter
     {
         private static readonly Random Rng = new Random();
 
@@ -95,139 +96,63 @@ namespace Xil
                 ["succ"] = o => o.Succ(),
             };
 
-        const int IntitialStackSize = 32;
+        private const int IntitialStackSize = 128;
 
         private Stack<IValue> stack = new Stack<IValue>(IntitialStackSize);
 
         private readonly IDictionary<string, Value.List> usrdefs =
             new Dictionary<string, Value.List>();
 
-        private readonly IDictionary<string, Builtin> builtins;
+        private IDictionary<string, Builtin> builtins;
 
-        private readonly Action<int, string> @out;
+        private Action<int, string> @out;
 
-        public Interpreter(Action<int, string> @out)
+        private Interpreter() { }
+
+        public static IInterpreter Create(Action<int, string> @out)
         {
-            this.builtins = new Dictionary<string, Builtin>
-            {
-                ["id"] = Builtin.Id(this.Id_),
-                ["stack"] = Builtin.Stack(this.Stack_),
-                ["unstack"] = Builtin.Unstack(this.Unstack_),
-                ["newstack"] = Builtin.Newstack(this.Newstack_),
-                ["intern"] = Builtin.Intern(this.Intern_),
-                ["pop"] = Builtin.Pop(this.Pop_),
-                ["swap"] = Builtin.Swap(this.Swap_),
-                ["rolldown"] = Builtin.Rolldown(this.Rolldown_),
-                ["rollup"] = Builtin.Rollup(this.Rollup_),
-                ["rotate"] = Builtin.Rotate(this.Rotate_),
-                ["dup"] = Builtin.Dup(this.Dup_),
-                ["popd"] = Builtin.Popd(this.Popd_),
-                ["dupd"] = Builtin.Dupd(this.Dupd_),
-                ["swapd"] = Builtin.Swapd(this.Swapd_),
-                ["rolldownd"] = Builtin.Rolldownd(this.Rolldownd_),
-                ["rollupd"] = Builtin.Rollupd(this.Rollupd_),
-                ["rotated"] = Builtin.Rotated(this.Rotated_),
-                ["not"] = Builtin.Not(this.Not_),
-                ["and"] = Builtin.And(this.And_),
-                ["or"] = Builtin.Or(this.Or_),
-                ["xor"] = Builtin.Xor(this.Xor_),
-                ["chr"] = Builtin.Chr(this.Chr_),
-                ["ord"] = Builtin.Ord(this.Ord_),
-                ["abs"] = Builtin.Abs(this.Abs_),
-                ["sign"] = Builtin.Sign(this.Sign_),
-                ["neg"] = Builtin.Neg(this.Neg_),
-                ["*"] = Builtin.Mul(this.Mul_),
-                ["/"] = Builtin.Ratio(this.Divide_),
-                ["+"] = Builtin.Add(this.Add_),
-                ["-"] = Builtin.Min(this.Sub_),
-                ["rem"] = Builtin.Rem(this.Rem_),
-                ["div"] = Builtin.Div(this.Div_),
-                ["strtoi"] = Builtin.Strtoi(this.Strtoi_),
-                ["strtof"] = Builtin.Strtof(this.Strtof_),
-                ["acos"] = Builtin.Acos(this.Acos_),
-                ["asin"] = Builtin.Asin(this.Asin_),
-                ["atan"] = Builtin.Atan(this.Atan_),
-                ["ceil"] = Builtin.Ceil(this.Ceil_),
-                ["cos"] = Builtin.Cos(this.Cos_),
-                ["cosh"] = Builtin.Cosh(this.Cosh_),
-                ["exp"] = Builtin.Exp(this.Exp_),
-                ["floor"] = Builtin.Floor(this.Floor_),
-                ["log"] = Builtin.Log(this.Log_),
-                ["log10"] = Builtin.Log10(this.Log10_),
-                ["sin"] = Builtin.Sin(this.Sin_),
-                ["sinh"] = Builtin.Sinh(this.Sinh_),
-                ["sqrt"] = Builtin.Sqrt(this.Sqrt_),
-                ["tan"] = Builtin.Tan(this.Tan_),
-                ["tanh"] = Builtin.Tanh(this.Tanh_),
-                ["pred"] = Builtin.Pred(this.Pred_),
-                ["succ"] = Builtin.Succ(this.Succ_),
-                ["max"] = Builtin.Max(this.Max_),
-                ["min"] = Builtin.Min(this.Min_),
-                ["cmp"] = Builtin.Cmp(this.Cmp_),
-                ["="] = Builtin.Eq(this.Eq_),
-                ["!="] = Builtin.Ne(this.Ne_),
-                ["<"] = Builtin.Lt(this.Lt_),
-                ["<="] = Builtin.Lte(this.Le_),
-                [">"] = Builtin.Gt(this.Gt_),
-                [">="] = Builtin.Gte(this.Ge_),
-                ["first"] = Builtin.First(this.First_),
-                ["rest"] = Builtin.Rest(this.Rest_),
-                ["cons"] = Builtin.Cons(this.Cons_),
-                ["swons"] = Builtin.Swons(this.Swons_),
-                ["concat"] = Builtin.Concat(this.Concat_),
-                ["enconcat"] = Builtin.Enconcat(this.Enconcat_),
-                ["uncons"] = Builtin.Uncons(this.Uncons_),
-                ["unswons"] = Builtin.Unswons(this.Unswons_),
-                ["take"] = Builtin.Take(this.Take_),
-                ["drop"] = Builtin.Drop(this.Drop_),
-                ["at"] = Builtin.At(this.At_),
-                ["of"] = Builtin.Of(this.Of_),
-                ["size"] = Builtin.Size(this.Size_),
-                ["null"] = Builtin.Null(this.Null_),
-                ["equal"] = Builtin.Equal(this.Equal_),
-                ["int"] = Builtin.Int(this.IsInt_),
-                ["float"] = Builtin.Float(this.IsFloat_),
-                ["char"] = Builtin.Char(this.IsChar_),
-                ["string"] = Builtin.String(this.IsString_),
-                ["list"] = Builtin.List(this.IsList_),
-                ["choice"] = Builtin.Choice(this.Choice_),
-                ["i"] = Builtin.I(this.I_),
-                ["x"] = Builtin.X(this.X_),
-                ["step"] = Builtin.Step(this.Step_),
-                ["dip"] = Builtin.Dip(this.Dip_),
-                ["infra"] = Builtin.Infra(this.Infra_),
-                ["linrec"] = new Builtin(this.Linrec_),
-                ["branch"] = new Builtin(this.Branch_),
-                ["iflist"] = new Builtin(this.IfList_),
-                ["ifte"] = Builtin.Ifte(this.Ifte_),
-                ["case"] = Builtin.Case(this.Case_),
-                ["opcase"] = Builtin.Opcase(this.Opcase_),
-                ["nullary"] = Builtin.Nullary(this.Nullary_),
-                ["unary"] = Builtin.Unary(this.Unary_),
-                ["unary2"] = new Builtin(this.Unary2_),
-                ["times"] = Builtin.Times(this.Times_),
-                ["map"] = Builtin.Map(this.Map_),
-                ["filter"] = new Builtin(this.Filter_),
-                ["some"] = new Builtin(this.Some_),
-                ["all"] = new Builtin(this.All_),
-                ["body"] = Builtin.Body(this.Body_),
-                ["peek"] = new Builtin(this.Peek_),
-                ["put"] = Builtin.Put(this.Put_),
-                ["puts"] = Builtin.Puts(this.Puts_),
-                ["time"] = new Builtin(this.Time_),
-                ["error"] = new Builtin(this.Error_),
-                ["defs"] = new Builtin(this.Defined_),
-                ["help"] = new Builtin(this.Help_),
-                ["helpdetail"] = new Builtin(this.Helpdetail_),
-                ["fopen"] = Builtin.Fopen(this.Fopen_),
-                ["fclose"] = Builtin.Fclose(this.Fclose_),
-                ["freads"] = Builtin.Freads(this.Freads_),
-                ["import"] = new Builtin(this.Import_),
-                ["rand"] = Builtin.Rand(this.Rand_),
-            };
+            BuiltinAttribute GetBuiltinAttribute(MethodInfo method) =>
+                method
+                    .GetCustomAttributes(typeof(BuiltinAttribute), false)
+                    .Cast<BuiltinAttribute>()
+                    .FirstOrDefault();
 
-            this.@out = @out;
+            var ops = typeof(Interpreter)
+                .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+                .Select(x => new
+                {
+                    Method = x,
+                    Attr = GetBuiltinAttribute(x),
+                })
+                .Where(x => x.Attr != null);
+
+            var interpreter = new Interpreter();
+            var builtins = new Dictionary<string, Builtin>();
+            foreach (var m in ops)
+            {
+                var action = (Action)Delegate.CreateDelegate(
+                    typeof(Action),
+                    interpreter,
+                    m.Method);
+
+                var bi = new Builtin(action, m.Attr.Effect, m.Attr.Notes);
+                builtins.Add(m.Attr.Name, bi);
+            }
+
+            interpreter.@out = @out;
+            interpreter.builtins = builtins;
+            return interpreter;
         }
+
+        public IValue Peek() => this.stack.Peek();
+
+        public T Peek<T>() where T : IValue => (T)this.stack.Peek();
+
+        public IValue Pop() => this.stack.Pop();
+
+        public T Pop<T>() where T : IValue => (T)this.stack.Pop();
+
+        public void Push(IValue value) => this.stack.Push(value);
 
         public IValue[] GetStack() => this.stack.ToArray();
 
@@ -247,7 +172,7 @@ namespace Xil
                         // only character values then it will be pushed as 
                         // a string value instead (experimental)
                         var l = (Value.List)value;
-                        if (l.Elements.Any() && l.Elements.All(x => x is Value.Char))
+                        if (l.Any() && l.All(x => x is Value.Char))
                         {
                             var chars = l.Elements
                                 .Cast<Value.Char>()
@@ -267,7 +192,7 @@ namespace Xil
                     }
                     break;
                 case ValueKind.Def:
-                    var def = (Value.Usr)value;
+                    var def = (Value.Definition)value;
                     this.usrdefs[def.Id] = def.Body;
                     break;
                 case ValueKind.Symbol:
@@ -292,148 +217,8 @@ namespace Xil
             }
         }
 
-        public void AddUsrdef(string name, Value.List body)
-        {
+        public void AddDefinition(string name, Value.List body) =>
             this.usrdefs[name] = body;
-        }
-
-        public void Rand_() =>
-            this.Push(new Value.Float(Rng.NextDouble()));
-
-        private void Id_()
-        {
-            /* do nothing */
-        }
-
-        private void Stack_()
-        {
-            var xs = this.stack.ToArray();
-            this.Push(new Value.List(xs));
-        }
-
-        private void Unstack_()
-        {
-            new Validator("unstack")
-                .OneParameter()
-                .ListOnTop()
-                .Validate(this.stack);
-
-            var xs = this.Pop<Value.List>().Elements;
-            this.stack = new Stack<IValue>(xs);
-        }
-
-        private void Newstack_()
-        {
-            this.stack = new Stack<IValue>(IntitialStackSize);
-        }
-
-        private void Name_()
-        {
-            new Validator("name")
-                .OneParameter()
-                .Validate(this.stack);
-
-            var sym = this.Pop();
-            var name = sym switch
-            {
-                Value.Int x => "int",
-                Value.Float x => "float",
-                Value.Bool x => "bool",
-                Value.Char x => "char",
-                Value.String x => "string",
-                Value.List x => "list",
-                Value.Set x => "set",
-                Value.Stream x => "stream",
-                Value.Symbol x => x.Value,
-                _ => throw new NotSupportedException(),
-            };
-
-            this.Push(new Value.String(name));
-        }
-
-        private void Intern_()
-        {
-            new Validator("intern")
-                .OneParameter()
-                .StringOnTop()
-                .Validate(this.stack);
-
-            var s = this.Pop<Value.String>();
-            var sym = new Value.Symbol(s.Value);
-            this.Push(sym);
-        }
-
-        private void Pop_()
-        {
-            new Validator("pop")
-                .OneParameter()
-                .Validate(this.stack);
-
-            this.Pop();
-        }
-
-        private void Swap_()
-        {
-            new Validator("swap")
-                .TwoParameters()
-                .Validate(this.stack);
-
-            var x = this.Pop();
-            var y = this.Pop();
-            this.Push(x);
-            this.Push(y);
-        }
-
-        private void Rollup_()
-        {
-            new Validator("rollup")
-                .ThreeParameters()
-                .Validate(this.stack);
-
-            var z = this.Pop();
-            var y = this.Pop();
-            var x = this.Pop();
-            this.Push(z);
-            this.Push(x);
-            this.Push(y);
-        }
-
-        private void Rolldown_()
-        {
-            new Validator("rolldown")
-                .ThreeParameters()
-                .Validate(this.stack);
-
-            var z = this.Pop();
-            var y = this.Pop();
-            var x = this.Pop();
-            this.Push(y);
-            this.Push(z);
-            this.Push(x);
-        }
-
-        private void Rotate_()
-        {
-            new Validator("rotate")
-                .ThreeParameters()
-                .Validate(this.stack);
-
-            var z = this.Pop();
-            var y = this.Pop();
-            var x = this.Pop();
-            this.Push(z);
-            this.Push(y);
-            this.Push(x);
-        }
-
-        private void Dup_()
-        {
-            new Validator("dup")
-                .OneParameter()
-                .Validate(this.stack);
-
-            this.Push(this.Peek().Clone());
-        }
 
         private void Dipped(
             string name,
@@ -444,34 +229,6 @@ namespace Xil
             var x = this.Pop();
             arg();
             this.Push(x);
-        }
-
-        private void Popd_() =>
-            this.Dipped("popd", v => v.TwoParameters(), this.Pop_);
-
-        private void Dupd_() =>
-            this.Dipped("dupd", v => v.TwoParameters(), this.Dup_);
-
-        private void Swapd_() =>
-            this.Dipped("swapd", v => v.ThreeParameters(), this.Swap_);
-
-        private void Rolldownd_() =>
-            this.Dipped("rolldownd", v => v.FourParameters(), this.Rolldown_);
-
-        private void Rollupd_() =>
-            this.Dipped("rollupd", v => v.FourParameters(), this.Rollup_);
-
-        private void Rotated_() =>
-            this.Dipped("rotated", v => v.FourParameters(), this.Rotate_);
-
-        private void Not_()
-        {
-            new Validator("not")
-                .OneParameter()
-                .Validate(this.stack);
-
-            var x = this.Pop();
-            this.Push(new Value.Bool(!Value.IsTruthy(x)));
         }
 
         private void AndOrXor(string op)
@@ -485,12 +242,6 @@ namespace Xil
             this.Push(andOrXorOps[op](x, y));
         }
 
-        private void And_() => AndOrXor("and");
-
-        private void Or_() => AndOrXor("or");
-
-        private void Xor_() => AndOrXor("xor");
-
         private void OrdChr(string op)
         {
             new Validator(op)
@@ -499,134 +250,6 @@ namespace Xil
 
             var x = this.Pop<IOrdinal>();
             this.Push(ordChrOps[op](x));
-        }
-
-        private void Ord_() => OrdChr("ord");
-
-        private void Chr_() => OrdChr("chr");
-
-        private void Abs_()
-        {
-            new Validator("abs")
-                .OneParameter()
-                .FloatOrInteger()
-                .Validate(this.stack);
-
-            var x = this.Pop();
-            IValue y = x switch
-            {
-                Value.Int i => new Value.Int(BigInteger.Abs(i.Value)),
-                Value.Float f => new Value.Float(M.Abs(f.Value)),
-                _ => throw new NotSupportedException(),
-            };
-
-            this.Push(y);
-        }
-
-        private void Sign_()
-        {
-            new Validator("sign")
-                .OneParameter()
-                .FloatOrInteger()
-                .Validate(this.stack);
-
-            var x = this.Pop();
-            IValue y = x switch
-            {
-                Value.Int i => new Value.Int(i.Value.Sign),
-                Value.Float f => new Value.Float(M.Sign(f.Value)),
-                _ => throw new NotSupportedException(),
-            };
-
-            this.Push(y);
-        }
-
-        private void Neg_()
-        {
-            new Validator("neg")
-                .OneParameter()
-                .FloatOrInteger()
-                .Validate(this.stack);
-
-            var x = this.Pop();
-            IValue y = x switch
-            {
-                Value.Int i => new Value.Int(-i.Value),
-                Value.Float f => new Value.Float(-f.Value),
-                _ => throw new NotSupportedException(),
-            };
-
-            this.Push(y);
-        }
-
-        private void Mul_()
-        {
-            new Validator("*")
-                .TwoParameters()
-                .TwoFloatsOrIntegers()
-                .Validate(this.stack);
-
-            var y = this.Pop<IFloatable>();
-            var x = this.Pop<IFloatable>();
-            this.Push(x.Mul(y));
-        }
-
-        private void Divide_()
-        {
-            new Validator("/")
-                .TwoParameters()
-                .TwoFloatsOrIntegers()
-                .NonZeroOnTop()
-                .Validate(this.stack);
-
-            var y = this.Pop<IFloatable>();
-            var x = this.Pop<IFloatable>();
-            this.Push(x.Divide(y));
-        }
-
-        private void Rem_()
-        {
-            void Remf()
-            {
-                var y = this.Pop<IFloatable>();
-                var x = this.Pop<IFloatable>();
-            }
-
-            var floatp = new Validator("rem")
-                .TwoParameters()
-                .AddRule(Validator.Floatable2)
-                .NonZeroOnTop();
-
-            if (floatp.TryValidate(this.stack, out var ignored))
-            {
-                Remf();
-                return;
-            }
-
-            new Validator("rem")
-                .TwoParameters()
-                .TwoIntegers()
-                .NonZeroOnTop()
-                .Validate(this.stack);
-
-            var y = this.Pop<Value.Int>();
-            var x = this.Pop<Value.Int>();
-            this.Push(new Value.Int(x.Value % y.Value));
-        }
-
-        private void Div_()
-        {
-            new Validator("div")
-                .TwoParameters()
-                .TwoIntegers()
-                .NonZeroOnTop()
-                .Validate(this.stack);
-
-            var y = this.Pop<Value.Int>();
-            var x = this.Pop<Value.Int>();
-            var q = BigInteger.DivRem(x.Value, y.Value, out var r);
-            this.Push(new Value.Int(q));
-            this.Push(new Value.Int(r));
         }
 
         private void Strtoi_()
@@ -639,7 +262,7 @@ namespace Xil
 
             var i = this.Pop<Value.Int>();
             var s = this.Pop<Value.String>();
-            var v = new BigInteger(Convert.ToInt64(s.Value, (int)i.Value));
+            var v = Convert.ToInt32(s.Value, (int)i.Value);
             this.Push(new Value.Int(v));
         }
 
@@ -721,10 +344,6 @@ namespace Xil
             var x = this.Pop<IFloatable>();
             this.stack.Push(floatBinaryOps[op](x, y));
         }
-
-        private void Add_() => AddSub("+");
-
-        private void Sub_() => AddSub("-");
 
         private void MaxMin(string op)
         {
@@ -899,7 +518,7 @@ namespace Xil
 
             var i = this.Pop<Value.Int>();
             var a = this.Pop<IAggregate>();
-            this.Push(a.At((int)i.Value));
+            this.Push(a.Index((int)i.Value));
         }
 
         private void Of_()
@@ -994,26 +613,6 @@ namespace Xil
 
         private void IsString_() => TypeCheck<Value.String>("stringg");
 
-        private void Choice_()
-        {
-            new Validator("choice")
-                .ThreeParameters()
-                .Validate(this.stack);
-
-            var f = this.Pop();
-            var t = this.Pop();
-            var b = this.Pop();
-
-            if (Value.IsTruthy(b))
-            {
-                this.Push(t);
-            }
-            else
-            {
-                this.Push(f);
-            }
-        }
-
         private void Execterm(Value.List p)
         {
             foreach (var fac in p.Elements)
@@ -1059,20 +658,6 @@ namespace Xil
                 this.Push(x);
                 this.Execterm(p);
             }
-        }
-
-        private void Dip_()
-        {
-            new Validator("dip")
-                .TwoParameters()
-                .OneQuote()
-                .Validate(this.stack);
-
-            var p = this.Pop<Value.List>();
-            var x = this.Pop();
-            this.Push(p);
-            this.I_();
-            this.Push(x);
         }
 
         private void Nullary_()
@@ -1214,10 +799,10 @@ namespace Xil
 
             foreach (var y in a.Elements.Cast<IAggregate>())
             {
-                var v = y.At(0);
+                var v = y.Index(0);
                 if (v.Equals(x))
                 {
-                    this.Push(y.At(1));
+                    this.Push(y.Index(1));
                     this.I_();
                     return;
                 }
@@ -1239,10 +824,10 @@ namespace Xil
 
             foreach (var y in a.Elements.Cast<IAggregate>())
             {
-                var k = y.At(0);
+                var k = y.Index(0);
                 if (k.Kind == x.Kind)
                 {
-                    this.Push(y.At(1));
+                    this.Push(y.Index(1));
                     return;
                 }
             }
@@ -1456,16 +1041,6 @@ namespace Xil
             this.@out(this.stack.Count, x.ToString());
         }
 
-        private void Put_()
-        {
-            new Validator("put")
-                .OneParameter()
-                .Validate(this.stack);
-
-            var x = this.Pop();
-            this.@out(this.stack.Count, x.ToString());
-        }
-
         private void Puts_()
         {
             new Validator("puts")
@@ -1494,7 +1069,7 @@ namespace Xil
                 var defs = Parser.Def.Many().Parse(tokens);
                 Array.ForEach(
                     defs.ToArray(),
-                    x => this.AddUsrdef(x.Id, x.Body));
+                    x => this.AddDefinition(x.Id, x.Body));
             }
         }
 
@@ -1578,6 +1153,71 @@ namespace Xil
             }
         }
 
+
+        [Builtin("stack")]
+        private void Stack_()
+        {
+            var xs = this.stack.ToArray();
+            this.Push(new Value.List(xs));
+        }
+
+        [Builtin("unstack")]
+        private void Unstack_()
+        {
+            new Validator("unstack")
+                .OneParameter()
+                .ListOnTop()
+                .Validate(this.stack);
+
+            var xs = this.Pop<Value.List>().Elements;
+            this.stack = new Stack<IValue>(xs);
+        }
+
+        private void Newstack_()
+        {
+            this.stack = new Stack<IValue>(IntitialStackSize);
+        }
+
+        private void Name_()
+        {
+            new Validator("name")
+                .OneParameter()
+                .Validate(this.stack);
+
+            var sym = this.Pop();
+            var name = sym switch
+            {
+                Value.Int x => "int",
+                Value.Float x => "float",
+                Value.Bool x => "bool",
+                Value.Char x => "char",
+                Value.String x => "string",
+                Value.List x => "list",
+                Value.Set x => "set",
+                Value.Stream x => "stream",
+                Value.Symbol x => x.Value,
+                _ => throw new NotSupportedException(),
+            };
+
+            this.Push(new Value.String(name));
+        }
+
+        private void Intern_()
+        {
+            new Validator("intern")
+                .OneParameter()
+                .StringOnTop()
+                .Validate(this.stack);
+
+            var s = this.Pop<Value.String>();
+            var sym = new Value.Symbol(s.Value);
+            this.Push(sym);
+        }
+
+        [Builtin(
+            "help",
+            "->",
+            "List builtin definitions.")]
         private void Help_()
         {
             if (this.builtins.Count == 0)
@@ -1596,6 +1236,10 @@ namespace Xil
             }
         }
 
+        [Builtin(
+            "?",
+            "Q ->",
+            "Show help on symbols in quotation Q.")]
         private void Helpdetail_()
         {
             new Validator("?").AggregateOnTop().Validate(this.stack);
@@ -1627,15 +1271,5 @@ namespace Xil
                 }
             }
         }
-
-        private IValue Peek() => this.stack.Peek();
-
-        private T Peek<T>() where T : Value => (T)this.stack.Peek();
-
-        private IValue Pop() => this.stack.Pop();
-
-        private T Pop<T>() where T : IValue => (T)this.stack.Pop();
-
-        private void Push(IValue value) => this.stack.Push(value);
     }
 }

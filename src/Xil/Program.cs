@@ -25,7 +25,7 @@
 
         private static void Main(string[] args)
         {
-            var interpreter = new Interpreter(Out);
+            var interpreter = Interpreter.Create(Out);
             while (true)
             {
                 var stack = interpreter.GetStack();
@@ -42,7 +42,7 @@
                     if (tokens.First().Kind == TokenKind.Colon)
                     {
                         var x = Parser.Def.Parse(tokens);
-                        interpreter.AddUsrdef(x.Id, x.Body);
+                        interpreter.AddDefinition(x.Id, x.Body);
                         continue;
                     }
 

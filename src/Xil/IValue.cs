@@ -4,6 +4,12 @@ namespace Xil
     {
         ValueKind Kind { get; }
 
+        // bool IsThruthy { get; }
+
+        // bool IsZero { get; }
+
+        // bool IsNull { get; }
+
         IValue Clone();
 
         IValue Not();

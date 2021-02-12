@@ -1,6 +1,7 @@
 namespace Xil
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -48,7 +49,7 @@ namespace Xil
                 return this.Value == other.Value;
             }
 
-            public IValue At(int i) => new Value.Char(this.Value[i]);
+            public IValue Index(int i) => new Value.Char(this.Value[i]);
 
             public IValue Concat(IAggregate value) =>
                 value switch
@@ -84,6 +85,14 @@ namespace Xil
                 rest = this.Rest();
                 return this.First();
             }
+
+            public IEnumerator<IValue> GetEnumerator() =>
+                this.Value
+                    .Select(x => new Value.Char(x))
+                    .GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator() =>
+                this.GetEnumerator();
         }
     }
 }

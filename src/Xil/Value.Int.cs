@@ -1,25 +1,41 @@
 namespace Xil
 {
     using System;
-    using System.Numerics;
 
     public abstract partial class Value
     {
         public class Int : Value, IFloatable, IOrdinal
         {
-            public Int(BigInteger value)
+            public Int(int value)
             {
                 this.Value = value;
             }
 
             public override ValueKind Kind => ValueKind.Int;
 
-            public BigInteger Value { get; }
+            public int Value { get; }
 
             public int OrdinalValue => (int)this.Value;
 
-            public Value.Float AsFloat() =>
-                new Value.Float((long)this.Value);
+            public static Value.Int operator -(Value.Int x) =>
+                new Value.Int(-x.Value);
+
+            public static Value.Int operator +(Value.Int x, Value.Int y) =>
+                new Value.Int(x.Value + y.Value);
+
+            public static Value.Int operator -(Value.Int x, Value.Int y) =>
+                new Value.Int(x.Value - y.Value);
+
+            public static Value.Int operator *(Value.Int x, Value.Int y) =>
+                new Value.Int(x.Value * y.Value);
+
+            public static Value.Int operator /(Value.Int x, Value.Int y) =>
+                new Value.Int(x.Value / y.Value);
+
+            public static implicit operator Value.Float(Value.Int x) =>
+                new Value.Float(x.Value);
+
+            public Value.Float AsFloat() => this;
 
             public override IValue Clone() => new Value.Int(this.Value);
 
@@ -68,32 +84,32 @@ namespace Xil
             public IValue Add(IValue value) =>
                 value switch
                 {
-                    Value.Int x => new Value.Int(this.Value + x.Value),
-                    Value.Float x => new Value.Float((long)this.Value + x.Value),
+                    Value.Int y => this + y,
+                    Value.Float y => this + y,
                     _ => throw new NotSupportedException(),
                 };
 
             public IValue Divide(IValue value) =>
                 value switch
                 {
-                    Value.Int y => new Value.Int(this.Value / y.Value),
-                    Value.Float y => new Value.Float((long)this.Value / y.Value),
+                    Value.Int y => this / y,
+                    Value.Float y => this / y,
                     _ => throw new NotSupportedException(),
                 };
 
             public IValue Mul(IValue value) =>
                 value switch
                 {
-                    Value.Int y => new Value.Int(this.Value * y.Value),
-                    Value.Float y => new Value.Float((long)this.Value * y.Value),
+                    Value.Int y => this * y,
+                    Value.Float y => this * y,
                     _ => throw new NotSupportedException(),
                 };
 
             public IValue Sub(IValue value) =>
                 value switch
                 {
-                    Value.Int y => new Value.Int(this.Value - y.Value),
-                    Value.Float y => new Value.Float((long)this.Value - y.Value),
+                    Value.Int y => this - y,
+                    Value.Float y => this - y,
                     _ => throw new NotSupportedException(),
                 };
 
@@ -142,7 +158,7 @@ namespace Xil
                 value switch
                 {
                     Value.Int y =>
-                        new Value.Int(BigInteger.Min(this.Value, y.Value)),
+                        new Value.Int(Math.Min(this.Value, y.Value)),
                     Value.Float y =>
                         new Value.Float(Math.Min(this.AsFloat().Value, y.Value)),
                     _ => throw new NotSupportedException(),
@@ -152,7 +168,7 @@ namespace Xil
                 value switch
                 {
                     Value.Int y =>
-                        new Value.Int(BigInteger.Max(this.Value, y.Value)),
+                        new Value.Int(Math.Max(this.Value, y.Value)),
                     Value.Float y =>
                         new Value.Float(Math.Max(this.AsFloat().Value, y.Value)),
                     _ => throw new NotSupportedException(),
