@@ -304,36 +304,6 @@ namespace Xil
             this.stack.Push(floatUnaryOps[op](x));
         }
 
-        private void Acos_() => FloatMath("acos");
-
-        private void Asin_() => FloatMath("asin");
-
-        private void Atan_() => FloatMath("atan");
-
-        private void Ceil_() => FloatMath("ceil");
-
-        private void Cos_() => FloatMath("cos");
-
-        private void Cosh_() => FloatMath("cosh");
-
-        private void Exp_() => FloatMath("exp");
-
-        private void Floor_() => FloatMath("floor");
-
-        private void Log_() => FloatMath("log");
-
-        private void Log10_() => FloatMath("log10");
-
-        private void Sin_() => FloatMath("sin");
-
-        private void Sinh_() => FloatMath("sinh");
-
-        private void Sqrt_() => FloatMath("sqrt");
-
-        private void Tan_() => FloatMath("tan");
-
-        private void Tanh_() => FloatMath("tanh");
-
         private void PredSucc(string op)
         {
             new Validator(op)
@@ -344,10 +314,6 @@ namespace Xil
             var x = this.Pop<IOrdinal>();
             this.Push(predSuccOps[op](x));
         }
-
-        private void Pred_() => PredSucc("pred");
-
-        private void Succ_() => PredSucc("succ");
 
         private void AddSub(string op)
         {
@@ -398,10 +364,6 @@ namespace Xil
             this.Push(ordBinaryOps[op](x, y));
         }
 
-        private void Min_() => MaxMin("min");
-
-        private void Max_() => MaxMin("max");
-
         private void Comprel_(string op)
         {
             void Comprelf()
@@ -423,89 +385,6 @@ namespace Xil
             var y = this.Pop<IOrdinal>();
             var x = this.Pop<IOrdinal>();
             this.Push(ordCmpOps[op](x, y));
-        }
-
-        private void Cmp_() => Comprel_("cmp");
-
-        private void Eq_() => Comprel_("=");
-
-        private void Ne_() => Comprel_("!=");
-
-        private void Lt_() => Comprel_("<");
-
-        private void Le_() => Comprel_("<=");
-
-        private void Gt_() => Comprel_(">");
-
-        private void Ge_() => Comprel_(">=");
-
-        private void First_()
-        {
-            var validator = new Validator("first")
-                .OneParameter()
-                .NonEmptyAggregateOnTop()
-                .Validate(this.stack);
-
-            var x = this.Pop<IAggregate>();
-            this.Push(x.First());
-        }
-
-        private void Rest_()
-        {
-            new Validator("rest")
-                .OneParameter()
-                .AggregateOnTop()
-                .Validate(this.stack);
-
-            var x = this.Pop<IAggregate>();
-            this.Push(x.Rest());
-        }
-
-        private void Cons_()
-        {
-            new Validator("cons")
-                .TwoParameters()
-                .AggregateOnTop()
-                .Validate(this.stack);
-
-            var a = this.Pop<IAggregate>();
-            var x = this.Pop();
-            this.Push(a.Cons(x));
-        }
-
-        private void Swons_()
-        {
-            new Validator("swons")
-                .TwoParameters()
-                .AggregateAsSecond()
-                .Validate(this.stack);
-
-            this.Swap_();
-            this.Cons_();
-        }
-
-        private void Uncons_()
-        {
-            new Validator("uncons")
-                .OneParameter()
-                .NonEmptyAggregateOnTop()
-                .Validate(this.stack);
-
-            var x = this.Pop<IAggregate>();
-            var first = x.Uncons(out var rest);
-            this.Push(first);
-            this.Push(rest);
-        }
-
-        private void Unswons_()
-        {
-            new Validator("unswons")
-                .OneParameter()
-                .NonEmptyAggregateOnTop()
-                .Validate(this.stack);
-
-            this.Uncons_();
-            this.Swap_();
         }
 
         private void Take_()
@@ -1099,44 +978,6 @@ namespace Xil
             }
         }
 
-        public void Fopen_()
-        {
-            new Validator("fopen")
-                .OneParameter()
-                .StringOnTop()
-                .Validate(this.stack);
-
-            var path = this.Pop<Value.String>();
-            var s = Value.Stream.Open(path.Value);
-            this.stack.Push(s);
-        }
-
-        public void Freads_()
-        {
-            new Validator("freads")
-                .OneParameter()
-                .StreamOnTop()
-                .Validate(this.stack);
-
-            var stream = this.Pop<Value.Stream>();
-            using (var reader = new StreamReader(stream.Value))
-            {
-                var s = reader.ReadToEnd();
-                this.stack.Push(new Value.String(s));
-            }
-        }
-
-        public void Fclose_()
-        {
-            new Validator("fclose")
-                .OneParameter()
-                .StreamOnTop()
-                .Validate(this.stack);
-
-            var s = this.Pop<Value.Stream>();
-            s.Close();
-        }
-
         private void Time_()
         {
             var sw = new Stopwatch();
@@ -1187,57 +1028,13 @@ namespace Xil
             this.Push(new Value.List(xs));
         }
 
-        [Builtin("unstack")]
-        private void Unstack_()
-        {
-            new Validator("unstack")
-                .OneParameter()
-                .ListOnTop()
-                .Validate(this.stack);
-
-            var xs = this.Pop<Value.List>().Elements;
-            this.stack = new Stack<IValue>(xs);
-        }
-
+        [Builtin(
+            "newstack",
+            "... ->",
+            "Clears the current stack.")]
         private void Newstack_()
         {
             this.stack = new Stack<IValue>(IntitialStackSize);
-        }
-
-        private void Name_()
-        {
-            new Validator("name")
-                .OneParameter()
-                .Validate(this.stack);
-
-            var sym = this.Pop();
-            var name = sym switch
-            {
-                Value.Int x => "int",
-                Value.Float x => "float",
-                Value.Bool x => "bool",
-                Value.Char x => "char",
-                Value.String x => "string",
-                Value.List x => "list",
-                Value.Set x => "set",
-                Value.Stream x => "stream",
-                Value.Symbol x => x.Value,
-                _ => throw new NotSupportedException(),
-            };
-
-            this.Push(new Value.String(name));
-        }
-
-        private void Intern_()
-        {
-            new Validator("intern")
-                .OneParameter()
-                .StringOnTop()
-                .Validate(this.stack);
-
-            var s = this.Pop<Value.String>();
-            var sym = new Value.Symbol(s.Value);
-            this.Push(sym);
         }
 
         [Builtin(
