@@ -217,7 +217,7 @@ namespace Xil
         {
             new Validator("*")
                 .TwoParameters()
-                .TwoFloatsOrIntegersOnTop()
+                .TwoFloatsOrIntegers()
                 .Validate(this.stack);
 
             if (TwoIntsOnTop())
@@ -243,7 +243,7 @@ namespace Xil
         {
             new Validator("/")
                 .TwoParameters()
-                .TwoFloatsOrIntegersOnTop()
+                .TwoFloatsOrIntegers()
                 .NonZeroOnTop()
                 .Validate(this.stack);
 
@@ -287,7 +287,7 @@ namespace Xil
 
             new Validator("rem")
                 .TwoParameters()
-                .TwoIntegersOnTop()
+                .TwoIntegers()
                 .NonZeroOnTop()
                 .Validate(this.stack);
 
@@ -304,7 +304,7 @@ namespace Xil
         {
             new Validator("div")
                 .TwoParameters()
-                .TwoIntegersOnTop()
+                .TwoIntegers()
                 .NonZeroOnTop()
                 .Validate(this.stack);
 

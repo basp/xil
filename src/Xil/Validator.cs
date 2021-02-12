@@ -81,22 +81,22 @@ namespace Xil
                 xs => xs[0].Kind == ValueKind.List,
                 "quotation as top parameter");
 
-        public Validator TwoQuotesOnTop() => this.QuoteOnTop()
+        public Validator TwoQuotes() => this.QuoteOnTop()
             .AddRule(
                 xs => xs[1].Kind == ValueKind.List,
                 "quotation as second parameter");
 
-        public Validator ThreeQuotesOnTop() => this.TwoQuotesOnTop()
+        public Validator ThreeQuotes() => this.TwoQuotes()
             .AddRule(
                 xs => xs[2].Kind == ValueKind.List,
                 "quotation as third parameter");
 
-        public Validator FourQuotesOnTop() => this.ThreeQuotesOnTop()
+        public Validator FourQuotes() => this.ThreeQuotes()
             .AddRule(
                 xs => xs[3].Kind == ValueKind.List,
                 "quotation as fourth parameter");
 
-        public Validator SameTwoTypesOnTop() =>
+        public Validator SameTwoTypes() =>
             this.AddRule(
                 xs => xs[0].Kind == xs[1].Kind,
                 "two parameters of the same type");
@@ -137,7 +137,7 @@ namespace Xil
                 xs => xs[0].Kind == ValueKind.Char,
                 "character");
 
-        public Validator TwoIntegersOnTop() =>
+        public Validator TwoIntegers() =>
             this.AddRule(
                 xs => xs[0].Kind == ValueKind.Int &&
                       xs[1].Kind == ValueKind.Int,
@@ -156,7 +156,7 @@ namespace Xil
                       xs[1].Kind == ValueKind.Char,
                 "ordinal second parameter");
 
-        public Validator TwoOrdinalsOnTop() =>
+        public Validator TwoOrdinals() =>
             this.AddRule(
                 xs => xs[0] is IOrdinal &&
                       xs[1] is IOrdinal,
@@ -165,7 +165,7 @@ namespace Xil
         public Validator FloatOrIntegerOnTop() =>
             this.AddRule(Floatable, "float or integer");
 
-        public Validator TwoFloatsOrIntegersOnTop() =>
+        public Validator TwoFloatsOrIntegers() =>
             this.AddRule(
                 xs => Floatable2(xs) ||
                       (xs[0].Kind == ValueKind.Int &&
@@ -183,7 +183,7 @@ namespace Xil
                 xs => xs[1] is IAggregate,
                 "aggregate as second parameter");
 
-        public Validator TwoAggregatesOnTop() =>
+        public Validator TwoAggregates() =>
             this.AddRule(
                 xs => xs[0] is IAggregate &&
                       xs[1] is IAggregate,
