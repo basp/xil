@@ -301,7 +301,7 @@ namespace Xil
             "sign",
             "N1 -> N2",
             "Integer N2 is the sign (-1 or 0 or +1) of integer N1",
-            "Also supports float.")]
+            "or float N2 is the sign (-1.0 or 0.0 or +1.0) of float N1.")]
         private void Sign_()
         {
             new Validator("sign")
@@ -343,10 +343,23 @@ namespace Xil
             this.Push(y);
         }
 
+        [Builtin(
+            "ord",
+            "C -> I",
+            "Integer I is the ASCII value of character C (or logical or integer).")]
         private void Ord_() => OrdChr("ord");
 
+        [Builtin(
+            "chr",
+            "I -> C",
+            "C is the character whose ASCII value is integer I (or logical or character).")]
         private void Chr_() => OrdChr("chr");
 
+        [Builtin(
+            "abs",
+            "N1 -> N2",
+            "Integer N2 is the absolute value (0, 1, 2..) of integer N1",
+            "or float N2 is the absolute value (0.0 ..) of float N1.")]
         private void Abs_()
         {
             new Validator("abs")

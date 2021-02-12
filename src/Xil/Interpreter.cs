@@ -5,10 +5,8 @@ namespace Xil
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Numerics;
     using System.Reflection;
     using Superpower;
-    using M = System.Math;
 
     public partial class Interpreter : IInterpreter
     {
