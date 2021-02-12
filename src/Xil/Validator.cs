@@ -162,10 +162,10 @@ namespace Xil
                       xs[1] is IOrdinal,
                 "two ordinal parameters");
 
-        public Validator FloatOrInteger() =>
+        public Validator FloatOrIntegerOnTop() =>
             this.AddRule(Floatable, "float or integer");
 
-        public Validator TwoFloatsOrIntegers() =>
+        public Validator TwoFloatsOrIntegersOnTop() =>
             this.AddRule(
                 xs => Floatable2(xs) ||
                       (xs[0].Kind == ValueKind.Int &&
@@ -183,7 +183,7 @@ namespace Xil
                 xs => xs[1] is IAggregate,
                 "aggregate as second parameter");
 
-        public Validator TwoAggregates() =>
+        public Validator TwoAggregatesOnTop() =>
             this.AddRule(
                 xs => xs[0] is IAggregate &&
                       xs[1] is IAggregate,

@@ -297,7 +297,7 @@ namespace Xil
         {
             new Validator(op)
                 .OneParameter()
-                .FloatOrInteger()
+                .FloatOrIntegerOnTop()
                 .Validate(this.stack);
 
             var x = this.Pop<IFloatable>();
@@ -353,7 +353,7 @@ namespace Xil
         {
             new Validator(op)
                 .TwoParameters()
-                .TwoFloatsOrIntegers()
+                .TwoFloatsOrIntegersOnTop()
                 .Validate(this.stack);
 
             var s = this.GetStack();
@@ -381,7 +381,7 @@ namespace Xil
             }
 
             var validator = new Validator(op);
-            var floatp = validator.TwoFloatsOrIntegers();
+            var floatp = validator.TwoFloatsOrIntegersOnTop();
             if (floatp.TryValidate(this.stack, out var ignored))
             {
                 MaxMinf(op);
@@ -412,7 +412,7 @@ namespace Xil
             }
 
             var validator = new Validator(op).TwoParameters();
-            var floatp = validator.TwoFloatsOrIntegers();
+            var floatp = validator.TwoFloatsOrIntegersOnTop();
             if (floatp.TryValidate(this.stack, out var ignored))
             {
                 Comprelf();
@@ -574,7 +574,7 @@ namespace Xil
         {
             new Validator("concat")
                 .TwoParameters()
-                .TwoAggregates()
+                .TwoAggregatesOnTop()
                 .SameTwoTypesOnTop()
                 .Validate(this.stack);
 
