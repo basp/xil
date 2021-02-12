@@ -49,6 +49,15 @@ namespace Xil
                 ["max"] = (x, y) => x.Max(y),
             };
 
+        private static IDictionary<string, Func<Value.Int, Value.Int, IValue>> intBinaryOps =
+            new Dictionary<string, Func<Value.Int, Value.Int, IValue>>
+            {
+                ["+"] = (x, y) => x + y,
+                ["-"] = (x, y) => x - y,
+                ["*"] = (x, y) => x * y,
+                ["/"] = (x, y) => x / y,
+            };
+
         private static IDictionary<string, Func<IOrdinal, IOrdinal, IValue>> ordBinaryOps =
             new Dictionary<string, Func<IOrdinal, IOrdinal, IValue>>
             {
@@ -347,9 +356,19 @@ namespace Xil
                 .TwoFloatsOrIntegers()
                 .Validate(this.stack);
 
-            var y = this.Pop<IFloatable>();
-            var x = this.Pop<IFloatable>();
-            this.stack.Push(floatBinaryOps[op](x, y));
+            var s = this.GetStack();
+            if (TwoIntsOnTop())
+            {
+                var y = this.Pop<Value.Int>();
+                var x = this.Pop<Value.Int>();
+                this.stack.Push(intBinaryOps[op](x, y));
+            }
+            else
+            {
+                var y = this.Pop<IFloatable>();
+                var x = this.Pop<IFloatable>();
+                this.stack.Push(floatBinaryOps[op](x, y));
+            }
         }
 
         private void MaxMin(string op)
@@ -1277,6 +1296,13 @@ namespace Xil
                     Console.WriteLine(info);
                 }
             }
+        }
+
+        private bool TwoIntsOnTop()
+        {
+            var s = this.GetStack();
+            return Value.IsType<Value.Int>(s[0])
+                && Value.IsType<Value.Int>(s[1]);
         }
     }
 }

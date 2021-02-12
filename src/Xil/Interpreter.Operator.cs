@@ -220,9 +220,18 @@ namespace Xil
                 .TwoFloatsOrIntegers()
                 .Validate(this.stack);
 
-            var y = this.Pop<IFloatable>();
-            var x = this.Pop<IFloatable>();
-            this.Push(x.Mul(y));
+            if (TwoIntsOnTop())
+            {
+                var y = this.Pop<Value.Int>();
+                var x = this.Pop<Value.Int>();
+                this.Push(x * y);
+            }
+            else
+            {
+                var y = this.Pop<IFloatable>();
+                var x = this.Pop<IFloatable>();
+                this.Push(x.Mul(y));
+            }
         }
 
         [Builtin(
@@ -238,9 +247,18 @@ namespace Xil
                 .NonZeroOnTop()
                 .Validate(this.stack);
 
-            var y = this.Pop<IFloatable>();
-            var x = this.Pop<IFloatable>();
-            this.Push(x.Divide(y));
+            if (TwoIntsOnTop())
+            {
+                var y = this.Pop<Value.Int>();
+                var x = this.Pop<Value.Int>();
+                this.Push(x / y);
+            }
+            else
+            {
+                var y = this.Pop<IFloatable>();
+                var x = this.Pop<IFloatable>();
+                this.Push(x.Divide(y));
+            }
         }
 
         [Builtin(
