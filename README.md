@@ -4,4 +4,4 @@ University in Melbourne, Australia.
 
 This started out as a port from the prototype C source but has since drifted 
 somewhat. The ultimate goal of this project is to provide an idiomatic reference
-implementation in C# that is faithful to the original specification ([doc/joy.txt](https://github.com/basp/xil/blob/vnext/doc/joy.txt)).
+implementation in C# that is faithful to the [original specification](https://github.com/basp/xil/blob/vnext/doc/joy.txt).
