@@ -117,12 +117,16 @@ namespace Xil
         private readonly IDictionary<string, Value.List> usrDefs =
             new Dictionary<string, Value.List>();
 
+        // will be initialized using reflection
         private IDictionary<string, Builtin> biOps;
 
+        // abstract time functions for unit tests
         private ITime time;
 
+        // abstract random functions for unit tests
         private IRandom random;
 
+        // print action gets stack size and a repr string
         private Action<int, string> print;
 
         private Interpreter(
@@ -145,27 +149,31 @@ namespace Xil
         {
             var interpreter = new Interpreter(time, random, @out);
 
+            // creates an `Action` to hook into the bi dict
             Action CreateAction(MethodInfo method) =>
                 (Action)Delegate.CreateDelegate(
                     typeof(Action),
                     interpreter,
                     method);
 
-            BuiltinAttribute GetAttribute(MethodInfo method) =>
+            // gets the builtin attribute that contains op info
+            BuiltinAttribute GetBuiltinAttribute(MethodInfo method) =>
                 method
                     .GetCustomAttributes(typeof(BuiltinAttribute), false)
                     .Cast<BuiltinAttribute>()
                     .FirstOrDefault();
 
+            // find all ops decorated with the builtin attribute
             var ops = typeof(Interpreter)
                 .GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
                 .Select(x => new
                 {
                     Method = x,
-                    Attr = GetAttribute(x),
+                    Attr = GetBuiltinAttribute(x),
                 })
                 .Where(x => x.Attr != null);
 
+            // initialize the builtin ops dictionary
             interpreter.biOps = ops
                 .Select(x => new
                 {
