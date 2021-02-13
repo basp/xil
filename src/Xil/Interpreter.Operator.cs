@@ -10,7 +10,7 @@ namespace Xil
         [Builtin(
             "id",
             "->",
-            "Identify function does nothing",
+            "Identity function does nothing",
             "Any program of the form P id Q is equivalent to just P Q.")]
         private void Id_()
         {
