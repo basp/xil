@@ -2,29 +2,14 @@
 {
     using System;
     using System.Linq;
+    using System.Runtime.InteropServices;
     using Superpower;
 
     internal class Program
     {
-        private static void Prompt(int stackSize)
-        {
-            Console.Write("[");
-            Console.Write(stackSize);
-            Console.Write("]");
-            Console.Write(" < ");
-        }
-
-        private static void Print(int stackSize, string value)
-        {
-            Console.Write("[");
-            Console.Write(stackSize);
-            Console.Write("]");
-            Console.Write(" > ");
-            Console.WriteLine(value);
-        }
-
         private static void Main(string[] args)
         {
+            Console.WriteLine($"Xil 0.8 on {RuntimeInformation.FrameworkDescription}");
             var interpreter = Interpreter.Create(Print);
             while (true)
             {
@@ -67,6 +52,23 @@
                     Console.WriteLine(ex);
                 }
             }
+        }
+
+        private static void Prompt(int stackSize)
+        {
+            Console.Write("[");
+            Console.Write(stackSize);
+            Console.Write("]");
+            Console.Write(" < ");
+        }
+
+        private static void Print(int stackSize, string value)
+        {
+            Console.Write("[");
+            Console.Write(stackSize);
+            Console.Write("]");
+            Console.Write(" > ");
+            Console.WriteLine(value);
         }
     }
 }
