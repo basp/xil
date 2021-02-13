@@ -244,21 +244,21 @@ namespace Xil
                 case ValueKind.Symbol:
                     var sym = (Value.Symbol)value;
 
-                    // well-known symbols
+                    // first, try lookup in well-known symbols
                     if (wkSyms.TryGetValue(sym, out var x))
                     {
                         this.Push(x);
                         return;
                     }
 
-                    // builtin operations
+                    // next, try builtin operations
                     if (this.biOps.TryGetValue(sym.Value, out var bi))
                     {
                         bi.Op();
                         return;
                     }
 
-                    // user definitions
+                    // finally, try user definitions
                     if (this.usrDefs.TryGetValue(sym.Value, out var usr))
                     {
                         this.Push(usr);
