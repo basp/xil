@@ -126,7 +126,8 @@ namespace Xil
         // abstract random functions for unit tests
         private IRandom random;
 
-        // print action gets stack size and a repr string
+        // print action gets stack size and a repr string which 
+        // are supplied by the interpreter host environment
         private Action<int, string> print;
 
         private Interpreter(
