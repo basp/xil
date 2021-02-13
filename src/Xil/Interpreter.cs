@@ -148,6 +148,7 @@ namespace Xil
             IRandom random,
             Action<int, string> @out)
         {
+            // we need this intrepeter instance to bind delegates later
             var interpreter = new Interpreter(time, random, @out);
 
             // creates an `Action` to hook into the bi dict

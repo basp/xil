@@ -24,6 +24,10 @@ namespace Xil
         }
 
 
+        [Builtin(
+            "defined",
+            "->",
+            "Prints all user definitions.")]
         private void Defined_()
         {
             if (this.usrDefs.Count == 0)
@@ -112,7 +116,11 @@ namespace Xil
             }
         }
 
-
+        [Builtin(
+            "peek",
+            "->",
+            "Prints the string representation of the top of",
+            "the stack without popping it.")]
         private void Peek_()
         {
             new Validator("peek")
@@ -123,6 +131,11 @@ namespace Xil
             this.print(this.stack.Count, x.ToString());
         }
 
+        [Builtin(
+            "puts",
+            "S ->",
+            "S is a string on top of the stack.",
+            "Prints the string S to the standard output.")]
         private void Puts_()
         {
             new Validator("puts")
@@ -134,6 +147,11 @@ namespace Xil
             this.print(this.stack.Count, x.Value);
         }
 
+        [Builtin(
+            "import",
+            "F ->",
+            "F is either a path string or a stream.",
+            "Reads file F as a string and parses it as a set of definitions.")]
         private void Import_()
         {
             var s = this.Pop();
