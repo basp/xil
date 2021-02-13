@@ -18,18 +18,15 @@ namespace Xil
             "time",
             "-> I",
             "Pushes the current time (in seconds since the Epoch).")]
-        private void Time_()
-        {
-            var seconds = DateTimeOffset.Now.ToUnixTimeSeconds();
-            this.Push(new Value.Int((int)seconds));
-        }
+        private void Time_() =>
+            this.Push(new Value.Int((int)this.time.GetUnixTimeSeconds()));
 
         [Builtin(
             "rand",
             "-> I",
             "I is a random integer.")]
         private void Rand_() =>
-            this.Push(new Value.Int(rng.Next()));
+            this.Push(new Value.Int(this.random.Next()));
 
         private void Error_()
         {

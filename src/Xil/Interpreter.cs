@@ -101,25 +101,49 @@ namespace Xil
                 ["succ"] = o => o.Succ(),
             };
 
+        private static IDictionary<Value.Symbol, IValue> wkSyms =
+            new Dictionary<Value.Symbol, IValue>
+            {
+                [new Value.Symbol("PI")] = new Value.Float(Math.PI),
+                [new Value.Symbol("E")] = new Value.Float(Math.E),
+                [new Value.Symbol("true")] = new Value.Bool(true),
+                [new Value.Symbol("false")] = new Value.Bool(false),
+            };
+
         private const int IntitialStackSize = 128;
 
         private Stack<IValue> stack = new Stack<IValue>(IntitialStackSize);
 
-        private readonly IDictionary<string, Value.List> usrdefs =
+        private readonly IDictionary<string, Value.List> usrDefs =
             new Dictionary<string, Value.List>();
 
-        private IDictionary<string, Builtin> builtins;
+        private IDictionary<string, Builtin> biOps;
+
+        private ITime time;
+
+        private IRandom random;
 
         private Action<int, string> print;
 
-        private Interpreter(Action<int, string> print)
+        private Interpreter(
+            ITime time,
+            IRandom random,
+            Action<int, string> print)
         {
+            this.time = time;
+            this.random = random;
             this.print = print;
         }
 
-        public static IInterpreter Create(Action<int, string> @out)
+        public static IInterpreter Create(Action<int, string> print) =>
+            Create(new SystemTime(), new SystemRandom(), print);
+
+        public static IInterpreter Create(
+            ITime time,
+            IRandom random,
+            Action<int, string> @out)
         {
-            var interpreter = new Interpreter(@out);
+            var interpreter = new Interpreter(time, random, @out);
 
             Action CreateAction(MethodInfo method) =>
                 (Action)Delegate.CreateDelegate(
@@ -142,7 +166,7 @@ namespace Xil
                 })
                 .Where(x => x.Attr != null);
 
-            interpreter.builtins = ops
+            interpreter.biOps = ops
                 .Select(x => new
                 {
                     Attr = x.Attr,
@@ -207,24 +231,34 @@ namespace Xil
                     break;
                 case ValueKind.Def:
                     var def = (Value.Definition)value;
-                    this.usrdefs[def.Id] = def.Body;
+                    this.usrDefs[def.Id] = def.Body;
                     break;
                 case ValueKind.Symbol:
                     var sym = (Value.Symbol)value;
-                    if (this.builtins.TryGetValue(sym.Value, out var bi))
+
+                    // well-known symbols
+                    if (wkSyms.TryGetValue(sym, out var x))
+                    {
+                        this.Push(x);
+                        return;
+                    }
+
+                    // builtin operations
+                    if (this.biOps.TryGetValue(sym.Value, out var bi))
                     {
                         bi.Op();
                         return;
                     }
 
-                    if (this.usrdefs.TryGetValue(sym.Value, out var usr))
+                    // user definitions
+                    if (this.usrDefs.TryGetValue(sym.Value, out var usr))
                     {
                         this.Push(usr);
                         this.I_();
                         return;
                     }
 
-                    var msg = $"undefined `{sym.Value}`";
+                    var msg = $"undefined symbol `{sym.Value}`";
                     throw new RuntimeException(msg);
                 default:
                     throw new NotSupportedException();
@@ -232,7 +266,7 @@ namespace Xil
         }
 
         public void AddDefinition(string name, Value.List body) =>
-            this.usrdefs[name] = body;
+            this.usrDefs[name] = body;
 
         private void Dipped(
             string name,

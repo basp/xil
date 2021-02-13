@@ -990,7 +990,7 @@ namespace Xil
                 _ => throw new NotSupportedException(),
             };
 
-            if (this.usrdefs.TryGetValue(name, out var usr))
+            if (this.usrDefs.TryGetValue(name, out var usr))
             {
                 this.Push(usr);
                 return;

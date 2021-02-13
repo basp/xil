@@ -26,16 +26,16 @@ namespace Xil
 
         private void Defined_()
         {
-            if (this.usrdefs.Count == 0)
+            if (this.usrDefs.Count == 0)
             {
                 return;
             }
 
-            var names = this.usrdefs.Keys.OrderBy(x => x);
+            var names = this.usrDefs.Keys.OrderBy(x => x);
             var w = names.Max(x => x.Length);
             foreach (var name in names)
             {
-                var def = this.usrdefs[name];
+                var def = this.usrDefs[name];
                 var ss = def.Elements.Select(x => x.ToString());
                 var s = string.Join(" ", ss);
                 var info = $": {name} {s} ;";
@@ -60,16 +60,16 @@ namespace Xil
             "List builtin definitions.")]
         private void Help_()
         {
-            if (this.builtins.Count == 0)
+            if (this.biOps.Count == 0)
             {
                 return;
             }
 
-            var names = this.builtins.Keys.OrderBy(x => x);
-            var w = this.builtins.Max(x => x.Key.Length);
+            var names = this.biOps.Keys.OrderBy(x => x);
+            var w = this.biOps.Max(x => x.Key.Length);
             foreach (var name in names)
             {
-                var bi = this.builtins[name];
+                var bi = this.biOps[name];
                 var fmt = $"{{0,{-w}}}  :  {bi.Effect}";
                 var info = string.Format(fmt, name);
                 Console.WriteLine(info);
@@ -88,7 +88,7 @@ namespace Xil
             var w = names.Max(x => x.Length);
             foreach (var name in names)
             {
-                if (this.builtins.TryGetValue(name, out var bi))
+                if (this.biOps.TryGetValue(name, out var bi))
                 {
                     var fmt = $"{{0,{-w}}}  :  {bi.Effect}";
                     var info = string.Format(fmt, name);
@@ -101,7 +101,7 @@ namespace Xil
                     Console.WriteLine();
                 }
 
-                if (this.usrdefs.TryGetValue(name, out var def))
+                if (this.usrDefs.TryGetValue(name, out var def))
                 {
                     var ss = def.Elements.Select(x => x.ToString());
                     var s = string.Join(" ", ss);

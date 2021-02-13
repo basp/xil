@@ -1,60 +1,29 @@
 namespace Xil.Tests
 {
-    using System;
-    using Xunit;
+    using Xunit.Abstractions;
 
-    public class InterpreterTests
+    public abstract class InterpreterTests
     {
-        private readonly IInterpreter i;
+        private readonly ITestOutputHelper output;
 
-        public InterpreterTests()
+        protected readonly IInterpreter i;
+
+        protected virtual ITime CreateTime() =>
+            new SystemTime();
+
+        protected virtual IRandom CreateRandom() =>
+            new SystemRandom();
+
+        protected InterpreterTests(ITestOutputHelper output)
         {
-            Action<int, string> print = (i, s) => { };
-            this.i = Interpreter.Create(print);
+            this.output = output;
+            this.i = Interpreter.Create(
+                this.CreateTime(),
+                this.CreateRandom(),
+                this.Print);
         }
 
-        [Fact]
-        public void IntIntAddition()
-        {
-            i.Exec(new Value.Int(2));
-            i.Exec(new Value.Int(3));
-            i.Exec(new Value.Symbol("+"));
-            var result = i.Pop<Value.Int>();
-
-            Assert.Equal(5, result.Value);
-        }
-
-        [Fact]
-        public void IntFloatAddition()
-        {
-            i.Exec(new Value.Int(2));
-            i.Exec(new Value.Float(3.12345));
-            i.Exec(new Value.Symbol("+"));
-            var result = i.Pop<Value.Float>();
-
-            Assert.Equal(5.12345, result.Value);
-        }
-
-        [Fact]
-        public void FloatIntAddition()
-        {
-            i.Exec(new Value.Float(3.12345));
-            i.Exec(new Value.Int(2));
-            i.Exec(new Value.Symbol("+"));
-            var result = i.Pop<Value.Float>();
-
-            Assert.Equal(5.12345, result.Value);
-        }
-
-        [Fact]
-        public void FloatFloatAddition()
-        {
-            i.Exec(new Value.Float(1.25));
-            i.Exec(new Value.Float(1.25));
-            i.Exec(new Value.Symbol("+"));
-            var result = i.Pop<Value.Float>();
-
-            Assert.Equal(2.5, result.Value);
-        }
+        protected void Print(int stackSize, string s) =>
+            this.output.WriteLine($"[{stackSize}] > {s}");
     }
 }

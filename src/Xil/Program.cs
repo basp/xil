@@ -39,7 +39,7 @@
                 }
                 catch (RuntimeException ex)
                 {
-                    var msg = $"Runtime error: {ex.Message}.";
+                    var msg = $"Runtime error: {ex.Message}";
                     Console.WriteLine(msg);
                 }
                 catch (ParseException ex)
