@@ -126,8 +126,8 @@ namespace Xil
         // abstract random functions for unit tests
         private IRandom random;
 
-        // print action gets stack size and a repr string which 
-        // are supplied by the interpreter host environment
+        // print action gets stack size and a repr string and
+        // must be supplied by the interpreter host environment
         private Action<int, string> print;
 
         private Interpreter(
@@ -140,9 +140,17 @@ namespace Xil
             this.print = print;
         }
 
+        /// <summary>
+        /// Creates a new <see cref="IInterpreter"/> instance using
+        /// system time and random functions.
+        /// </summary>
         public static IInterpreter Create(Action<int, string> print) =>
             Create(new SystemTime(), new SystemRandom(), print);
 
+        /// <summary>
+        /// Creats a new <see cref="IInterpreter"/> instance with
+        /// given <see cref="ITime"/> and <see cref="IRandom"/> implementations.
+        /// </summary>
         public static IInterpreter Create(
             ITime time,
             IRandom random,
