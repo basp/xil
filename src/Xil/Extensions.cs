@@ -10,8 +10,10 @@ namespace Xil
 
         public static Stack<IValue> Clone(this Stack<IValue> self)
         {
-            // cloning a stack is a bit awkward since we need to
-            // reverse all the elements before we create a new one
+            // cloning a stack is a awkward since we need to
+            // reverse all the elements before we create a new one;
+            // if we don't our clone will end up reversed from our
+            // original
             var xs = self.Select(x => x.Clone()).Reverse().ToArray();
             return new Stack<IValue>(xs);
         }
