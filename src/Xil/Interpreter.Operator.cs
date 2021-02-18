@@ -765,7 +765,10 @@ namespace Xil
             "The values correspond to the predicates <=, =, >=")]
         private void Cmp_() => Comprel("cmp");
 
-        [Builtin("at")]
+        [Builtin(
+            "at",
+            "A I -> X",
+            "X (= A[I]) is the member of A at position I.")]
         private void At_()
         {
             new Validator("at")
@@ -779,7 +782,10 @@ namespace Xil
             this.Push(a.Index((int)i.Value));
         }
 
-        [Builtin("of")]
+        [Builtin(
+            "of",
+            "I A -> X",
+            "X (= A[I]) is the I-th member of aggregate A.")]
         private void Of_()
         {
             new Validator("of")
@@ -792,6 +798,10 @@ namespace Xil
             this.At_();
         }
 
+        [Builtin(
+            "size",
+            "A -> I",
+            "Integer I is the number of elements of aggregate A.")]
         private void Size_()
         {
             new Validator("size")
@@ -803,7 +813,10 @@ namespace Xil
             this.Push(new Value.Int(a.Size));
         }
 
-
+        [Builtin(
+            "opcase",
+            "X [..[X Xs]..] -> [Xs]",
+            "Indexing on type of X, returns the list [Xs].")]
         private void Opcase_()
         {
             new Validator("opcase")
@@ -828,6 +841,10 @@ namespace Xil
             }
         }
 
+        [Builtin(
+            "case",
+            "X [..[X Y]..] -> Y i",
+            "Indexing on value of X, execute the matching Y.")]
         private void Case_()
         {
             new Validator("case")
@@ -853,7 +870,10 @@ namespace Xil
             }
         }
 
-        [Builtin("uncons")]
+        [Builtin(
+            "uncons",
+            "A -> F R",
+            "F and R are the first and the rest of non-empty aggregate A.")]
         private void Uncons_()
         {
             new Validator("uncons")
@@ -867,7 +887,10 @@ namespace Xil
             this.Push(rest);
         }
 
-        [Builtin("unswons")]
+        [Builtin(
+            "unswons",
+            "A -> R F",
+            "R and F are the rest and the first of non-empty aggregate A.")]
         private void Unswons_()
         {
             new Validator("unswons")
@@ -879,7 +902,10 @@ namespace Xil
             this.Swap_();
         }
 
-        [Builtin("drop")]
+        [Builtin(
+            "drop",
+            "A N -> B",
+            "Aggregate B is the result of deleting the first N elements of A.")]
         private void Drop_()
         {
             new Validator("drop")
@@ -893,7 +919,10 @@ namespace Xil
             this.Push(a.Drop((int)n.Value));
         }
 
-        [Builtin("take")]
+        [Builtin(
+            "take",
+            "A N -> B",
+            "Aggregate B is the result of retaining just the first N elements of A.")]
         private void Take_()
         {
             new Validator("take")
@@ -907,6 +936,10 @@ namespace Xil
             this.Push(a.Take((int)n.Value));
         }
 
+        [Builtin(
+            "concat",
+            "S T -> U",
+            "Sequence U is the concatenation of sequences S and T.")]
         private void Concat_()
         {
             new Validator("concat")
@@ -920,6 +953,11 @@ namespace Xil
             this.Push(x.Concat(y));
         }
 
+        [Builtin(
+            "enconcat",
+            "X S T -> U",
+            "Sequence U is the concatenation of sequences S and T",
+            "with X inserted between S and T (swapd cons concat).")]
         private void Enconcat_()
         {
             new Validator("enconcat")
@@ -977,6 +1015,10 @@ namespace Xil
             this.Push(sym);
         }
 
+        [Builtin(
+            "body",
+            "U -> [P]",
+            "Quotation [P] is the body of user-defined symbol U.")]
         private void Body_()
         {
             new Validator("body")
