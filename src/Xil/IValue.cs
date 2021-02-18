@@ -11,5 +11,7 @@ namespace Xil
         // bool IsNull { get; }
 
         IValue Clone();
+
+        object ToClrValue();
     }
 }

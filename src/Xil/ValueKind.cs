@@ -21,5 +21,11 @@ namespace Xil
         Def,
 
         Stream,
+
+        ClrType,
+
+        ClrMethod,
+
+        ClrMember,
     }
 }

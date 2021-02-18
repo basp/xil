@@ -253,6 +253,16 @@ namespace Xil
                 xs => xs[1].Kind == ValueKind.List,
                 "list as second parameter");
 
+        public Validator ClrTypeOnTop() =>
+            this.AddRule(
+                xs => xs[0].Kind == ValueKind.ClrType,
+                "clrtype");
+
+        public Validator ClrTypeAsSecond() =>
+            this.AddRule(
+                xs => xs[1].Kind == ValueKind.ClrType,
+                "clrtype as second parameter");
+
         public Validator AddRule(Func<IValue[], bool> p, string message = null)
         {
             var clone = new Validator(this.name, this.rules);

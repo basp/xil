@@ -1,7 +1,20 @@
 namespace Xil
 {
+    using System;
+
     public abstract partial class Value : IValue
     {
+        public static object ToClrValue(IValue value) =>
+            value switch
+            {
+                Value.Bool x => x.Value,
+                Value.Char x => x.Value,
+                Value.Int x => x.Value,
+                Value.Float x => x.Value,
+                Value.List x => x.Elements,
+                _ => throw new NotImplementedException(),
+            };
+
         public static bool IsZero(IValue value) =>
             value switch
             {
@@ -46,5 +59,7 @@ namespace Xil
 
         public virtual IValue Xor(IValue value) =>
             new Value.Bool(IsTruthy(this) ^ IsTruthy(value));
+
+        public object ToClrValue() => Value.ToClrValue(this);
     }
 }
