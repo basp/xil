@@ -765,6 +765,7 @@ namespace Xil
             "The values correspond to the predicates <=, =, >=")]
         private void Cmp_() => Comprel("cmp");
 
+        [Builtin("at")]
         private void At_()
         {
             new Validator("at")
@@ -778,6 +779,7 @@ namespace Xil
             this.Push(a.Index((int)i.Value));
         }
 
+        [Builtin("of")]
         private void Of_()
         {
             new Validator("of")

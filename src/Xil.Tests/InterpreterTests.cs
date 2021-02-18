@@ -4,7 +4,7 @@ namespace Xil.Tests
 
     public abstract class InterpreterTests
     {
-        private readonly ITestOutputHelper output;
+        private readonly TestOutputPrinter printer;
 
         protected readonly IInterpreter i;
 
@@ -16,14 +16,11 @@ namespace Xil.Tests
 
         protected InterpreterTests(ITestOutputHelper output)
         {
-            this.output = output;
+            this.printer = new TestOutputPrinter(output);
             this.i = Interpreter.Create(
                 this.CreateTime(),
                 this.CreateRandom(),
-                this.Print);
+                this.printer);
         }
-
-        protected void Print(int stackSize, string s) =>
-            this.output.WriteLine($"[{stackSize}] > {s}");
     }
 }

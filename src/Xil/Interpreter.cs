@@ -110,12 +110,16 @@ namespace Xil
                 [new Value.Symbol("false")] = new Value.Bool(false),
             };
 
+        private readonly IDictionary<string, Value.List> usrDefs =
+            new Dictionary<string, Value.List>();
+
+        private readonly IPrinter printer;
+
         private const int IntitialStackSize = 128;
 
         private Stack<IValue> stack = new Stack<IValue>(IntitialStackSize);
 
-        private readonly IDictionary<string, Value.List> usrDefs =
-            new Dictionary<string, Value.List>();
+        private Stack<IValue> saved;
 
         // will be initialized using reflection
         private IDictionary<string, Builtin> biOps;
@@ -128,24 +132,24 @@ namespace Xil
 
         // print action gets stack size and a repr string and
         // must be supplied by the interpreter host environment
-        private Action<int, string> print;
+        // private Action<int, string> print;
 
         private Interpreter(
             ITime time,
             IRandom random,
-            Action<int, string> print)
+            IPrinter printer)
         {
             this.time = time;
             this.random = random;
-            this.print = print;
+            this.printer = printer;
         }
 
         /// <summary>
         /// Creates a new <see cref="IInterpreter"/> instance using
         /// system time and random functions.
         /// </summary>
-        public static IInterpreter Create(Action<int, string> print) =>
-            Create(new SystemTime(), new SystemRandom(), print);
+        public static IInterpreter Create(IPrinter printer) =>
+            Create(new SystemTime(), new SystemRandom(), printer);
 
         /// <summary>
         /// Creats a new <see cref="IInterpreter"/> instance with
@@ -154,10 +158,10 @@ namespace Xil
         public static IInterpreter Create(
             ITime time,
             IRandom random,
-            Action<int, string> @out)
+            IPrinter printer)
         {
             // we need this intrepeter instance to bind delegates later
-            var interpreter = new Interpreter(time, random, @out);
+            var interpreter = new Interpreter(time, random, printer);
 
             // creates an `Action` to hook into the bi dict
             Action CreateAction(MethodInfo method) =>
@@ -211,6 +215,19 @@ namespace Xil
         public void Push(IValue value) => this.stack.Push(value);
 
         public IValue[] GetStack() => this.stack.ToArray();
+
+        public void Exec2(IValue value)
+        {
+            try
+            {
+                this.saved = this.stack.Clone();
+                this.Exec(value);
+            }
+            catch(RuntimeException)
+            {
+                this.stack = this.saved;
+            }
+        }
 
         public void Exec(IValue value)
         {

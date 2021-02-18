@@ -10,7 +10,7 @@
         private static void Main(string[] args)
         {
             Console.WriteLine($"Xil 0.8 on {RuntimeInformation.FrameworkDescription}");
-            var interpreter = Interpreter.Create(Print);
+            var interpreter = Interpreter.Create(new ConsolePrinter());
             while (true)
             {
                 var stack = interpreter.GetStack();
@@ -34,7 +34,7 @@
                     var term = Parser.Term.Parse(tokens);
                     foreach (var fac in term)
                     {
-                        interpreter.Exec(fac);
+                        interpreter.Exec2(fac);
                     }
                 }
                 catch (RuntimeException ex)

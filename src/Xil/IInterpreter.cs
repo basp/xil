@@ -16,6 +16,8 @@ namespace Xil
 
         void Exec(IValue value);
 
+        void Exec2(IValue value);
+
         void AddDefinition(string name, Value.List body);
     }
 }

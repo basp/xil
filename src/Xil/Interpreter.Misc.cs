@@ -20,7 +20,7 @@ namespace Xil
                 .Validate(this.stack);
 
             var x = this.Pop();
-            this.print(this.stack.Count, x.ToString());
+            this.printer.Print(this.stack.Count, x);
         }
 
 
@@ -128,7 +128,7 @@ namespace Xil
                 .Validate(this.stack);
 
             var x = this.Peek();
-            this.print(this.stack.Count, x.ToString());
+            this.printer.Print(this.stack.Count, x);
         }
 
         [Builtin(
@@ -144,7 +144,7 @@ namespace Xil
                 .Validate(this.stack);
 
             var x = this.Pop<Value.String>();
-            this.print(this.stack.Count, x.Value);
+            this.printer.Print(this.stack.Count, x.Value);
         }
 
         [Builtin(

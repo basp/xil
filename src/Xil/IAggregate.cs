@@ -2,6 +2,11 @@ namespace Xil
 {
     using System.Collections.Generic;
     
+    /// <summary>
+    /// Provides operations that are applicable to aggregates
+    /// which include <see cref="Value.List"/> and
+    /// <see cref="Value.String"/> for example.
+    /// </summary>
     public interface IAggregate : IValue, IEnumerable<IValue>
     {
         /// <summary>

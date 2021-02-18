@@ -47,6 +47,105 @@ namespace Xil.Tests
         }
 
         [Fact]
+        public void TestRollup()
+        {
+            var x = new Value.Int(123);
+            var y = new Value.Int(456);
+            var z = new Value.Int(789);
+
+            i.Exec(x);
+            i.Exec(y);
+            i.Exec(z);
+            i.Exec(new Value.Symbol("rollup"));
+
+            Assert.Equal(y, i.Pop());
+            Assert.Equal(x, i.Pop());
+            Assert.Equal(z, i.Pop());
+        }
+
+        [Fact]
+        public void TestRolldown()
+        {
+            var x = new Value.Int(123);
+            var y = new Value.Int(456);
+            var z = new Value.Int(789);
+
+            i.Exec(x);
+            i.Exec(y);
+            i.Exec(z);
+            i.Exec(new Value.Symbol("rolldown"));
+
+            Assert.Equal(x, i.Pop());
+            Assert.Equal(z, i.Pop());
+            Assert.Equal(y, i.Pop());
+        }
+
+        [Fact]
+        public void TestRotate()
+        {
+            var x = new Value.Int(123);
+            var y = new Value.Int(456);
+            var z = new Value.Int(789);
+
+            i.Exec(x);
+            i.Exec(y);
+            i.Exec(z);
+            i.Exec(new Value.Symbol("rotate"));
+
+            Assert.Equal(x, i.Pop());
+            Assert.Equal(y, i.Pop());
+            Assert.Equal(z, i.Pop());
+        }
+
+        [Fact]
+        public void Popd()
+        {
+            var y = new Value.Int(123);
+            var z = new Value.Int(456);
+
+            i.Exec(y);
+            i.Exec(z);
+            i.Exec(new Value.Symbol("popd"));
+
+            Assert.Equal(z, i.Pop());
+            Assert.Empty(i.GetStack());
+        }
+
+        [Fact]
+        public void Dupd()
+        {
+            var y = new Value.Int(123);
+            var z = new Value.Int(456);
+
+            i.Exec(y);
+            i.Exec(z);
+            i.Exec(new Value.Symbol("dupd"));
+
+            Assert.Equal(z, i.Pop());
+            Assert.Equal(y, i.Pop());
+            Assert.Equal(y, i.Pop());
+            Assert.Empty(i.GetStack());
+        }
+
+        [Fact]
+        public void Swapd()
+        {
+            var x = new Value.Int(123);
+            var y = new Value.Int(456);
+            var z = new Value.Int(789);
+
+            i.Exec(x);
+            i.Exec(y);
+            i.Exec(z);
+            i.Exec(new Value.Symbol("swapd"));
+
+            Assert.Equal(z, i.Pop());
+            Assert.Equal(x, i.Pop());
+            Assert.Equal(y, i.Pop());
+            Assert.Empty(i.GetStack());
+        }
+
+        [Fact]
         public void IntIntAddition()
         {
             i.Exec(new Value.Int(2));

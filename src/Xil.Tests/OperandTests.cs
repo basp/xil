@@ -4,7 +4,7 @@ namespace Xil.Tests
     using Xunit;
     using Xunit.Abstractions;
 
-    public class OperandTests : InterpreterTests
+    public partial class OperandTests : InterpreterTests
     {
         public OperandTests(ITestOutputHelper output)
             : base(output)
@@ -83,21 +83,5 @@ namespace Xil.Tests
         protected override ITime CreateTime() => new TestTime();
 
         protected override IRandom CreateRandom() => new TestRandom();
-
-        class TestTime : ITime
-        {
-            public const int UnitTimeSeconds = 123;
-
-            public long GetUnixTimeSeconds() => UnitTimeSeconds;
-        }
-
-        class TestRandom : IRandom
-        {
-            public const int NextValue = 456;
-
-            public int Next() => NextValue;
-
-            public void Seed(int value) { }
-        }
     }
 }
