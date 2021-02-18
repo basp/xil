@@ -1,31 +1,36 @@
 namespace Xil
 {
+    using System;
+
+    [Flags]
     public enum ValueKind
     {
-        None,
+        None = 0,
 
-        Symbol,
+        Symbol = (1 << 0),
 
-        Int,
+        Int = (1 << 1),
 
-        Float,
+        Float = (1 << 2),
 
-        Bool,
+        Bool = (1 << 3),
 
-        Char,
+        Char = (1 << 4),
 
-        String,
+        String = (1 << 5),
 
-        List,
+        List = (1 << 6),
 
-        Def,
+        Def = (1 << 7),
 
-        Stream,
+        Stream = (1 << 8),
 
-        ClrType,
+        ClrType = (1 << 9),
 
-        ClrMethod,
+        ClrMethod = (1 << 10),
 
-        ClrMember,
+        ClrMember = (1 << 11),
+
+        ClrKind = ClrType | ClrMember | ClrMethod
     }
 }

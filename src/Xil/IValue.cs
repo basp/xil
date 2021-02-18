@@ -4,6 +4,8 @@ namespace Xil
     {
         ValueKind Kind { get; }
 
+        bool IsClrKind { get; }
+
         // bool IsThruthy { get; }
 
         // bool IsZero { get; }
