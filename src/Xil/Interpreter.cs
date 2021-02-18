@@ -163,7 +163,7 @@ namespace Xil
             // we need this intrepeter instance to bind delegates later
             var interpreter = new Interpreter(time, random, printer);
 
-            // creates an `Action` to hook into the bi dict
+            // creates an `Action` to hook into the builtin dict
             Action CreateAction(MethodInfo method) =>
                 (Action)Delegate.CreateDelegate(
                     typeof(Action),

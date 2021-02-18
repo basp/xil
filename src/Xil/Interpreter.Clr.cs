@@ -29,7 +29,7 @@ namespace Xil
             "clr_reflect",
             ".. -> ..",
             "Display information about type T.")]
-        private void ClrReflect()
+        private void ClrReflect_()
         {
             new Validator("clr_reflect")
                 .ClrTypeOnTop()
