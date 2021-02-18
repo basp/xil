@@ -31,24 +31,30 @@
                         continue;
                     }
 
+                    interpreter.Begin();
                     var term = Parser.Term.Parse(tokens);
                     foreach (var fac in term)
                     {
-                        interpreter.Exec2(fac);
+                        interpreter.Exec(fac);
                     }
+
+                    interpreter.Commit();
                 }
                 catch (RuntimeException ex)
                 {
+                    interpreter.Rollback();
                     var msg = $"Runtime error: {ex.Message}";
                     Console.WriteLine(msg);
                 }
                 catch (ParseException ex)
                 {
+                    interpreter.Rollback();
                     var msg = ex.Message;
                     Console.WriteLine(msg);
                 }
                 catch (Exception ex)
                 {
+                    interpreter.Rollback();
                     Console.WriteLine(ex);
                 }
             }

@@ -216,17 +216,20 @@ namespace Xil
 
         public IValue[] GetStack() => this.stack.ToArray();
 
-        public void Exec2(IValue value)
+        public void Begin() => this.saved = this.stack.Clone();
+
+        // just get rid of the clone
+        public void Commit() => this.saved = null;
+
+        public void Rollback()
         {
-            try
+            // no transaction in progress, just do nothing
+            if (this.saved == null)
             {
-                this.saved = this.stack.Clone();
-                this.Exec(value);
+                return;
             }
-            catch(RuntimeException)
-            {
-                this.stack = this.saved;
-            }
+
+            this.stack = saved;
         }
 
         public void Exec(IValue value)

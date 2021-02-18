@@ -16,7 +16,11 @@ namespace Xil
 
         void Exec(IValue value);
 
-        void Exec2(IValue value);
+        void Begin();
+
+        void Commit();        
+
+        void Rollback();
 
         void AddDefinition(string name, Value.List body);
     }
