@@ -46,10 +46,12 @@ namespace Xil
 
         public abstract ValueKind Kind { get; }
 
+        // public virtual bool IsClrKind => this.Kind.HasFlag(ValueKind.ClrKind);
+
         public virtual bool IsClrKind =>
-            this.Kind == ValueKind.ClrType ||
             this.Kind == ValueKind.ClrMember ||
-            this.Kind == ValueKind.ClrMethod;
+            this.Kind == ValueKind.ClrMethod ||
+            this.Kind == ValueKind.ClrType;
 
         public abstract IValue Clone();
 

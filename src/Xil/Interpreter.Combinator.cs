@@ -1,5 +1,6 @@
 namespace Xil
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
 
@@ -51,9 +52,41 @@ namespace Xil
             this.Push(p);
             this.I_();
             this.Push(x);
-        }   
+        }
 
+        [Builtin(
+            "app1",
+            "X [P] -> R",
+            "Executes P, pushes result R on the stack without X.")]
+        private void App1_()
+        {
+            throw new NotImplementedException();
+        }
 
+        [Builtin(
+            "app11",
+            "X Y [P] -> R",
+            "Executes P, pushes result R on the stack.")]
+        private void App11_()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Builtin(
+            "app12",
+            "X Y1 Y2 [P] -> R1 R2",
+            "Executes P twice, with Y1 and Y2, returns R1 and R2.")]
+        private void App12_()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Builtin(
+            "nullary",
+            "[P] -> R",
+            "Executes P, which leaves R on top of the stack.",
+            "No matter how many parameters this consumes,",
+            "none are removed from the stack.")]
         private void Nullary_()
         {
             new Validator("nullary")
@@ -68,6 +101,12 @@ namespace Xil
             this.Push(r);
         }
 
+        [Builtin(
+            "unary",
+            "X [P] -> R",
+            "Executes P, which leaves R on top of the stack.",
+            "No matter how many parameters this consumes,",
+            "none are removed from the stack.")]
         private void Unary_()
         {
             new Validator("unary")
@@ -84,7 +123,11 @@ namespace Xil
             this.Push(r);
         }
 
-        // Y Z [P] -> Y' Z'
+        [Builtin(
+            "unary2",
+            "X1 X2 [P] -> R1 R2",
+            "Executes P twice, with X1 and X2 on top of the stack.",
+            "Return the two values R1 and R2.")]
         private void Unary2_()
         {
             new Validator("unary2")
@@ -108,6 +151,10 @@ namespace Xil
             this.stack.Push(pz);
         }
 
+        [Builtin(
+            "branch",
+            "B [T] [F] -> ...",
+            "If B is true, then executes T else executes F.")]
         private void Branch_()
         {
             new Validator("branch")
@@ -128,6 +175,10 @@ namespace Xil
             }
         }
 
+        [Builtin(
+            "ifte",
+            "[B] [T] [F] -> ...",
+            "Executes B. If that yields true, then executes T else executes F.")]
         private void Ifte_()
         {
             new Validator("ifte")
@@ -139,15 +190,10 @@ namespace Xil
             var t = this.Pop<Value.List>();
             var b = this.Pop<Value.List>();
 
-            // var xs = this.stack
-            //     .Reverse()
-            //     .Select(x => x.Clone());
-
-            // var temp = new Stack<IValue>(xs);
-            var saved = this.stack.Clone();
+            var temp = this.stack.Clone();
             this.Execterm(b);
             var pred = Value.IsTruthy(this.Pop());
-            this.stack = saved;
+            this.stack = temp;
             if (pred)
             {
                 this.Execterm(t);
@@ -178,6 +224,11 @@ namespace Xil
             }
         }
 
+        [Builtin(
+            "linrec",
+            "[P] [T] [R1] [R2] -> ...",
+            "Executes P. If that yields true, executes T.",
+            "Else executes R1, recurses, executes R2.")]
         private void Linrec_()
         {
             new Validator("linrec")
@@ -211,6 +262,11 @@ namespace Xil
             Linrecaux();
         }
 
+        [Builtin(
+            "step",
+            "A [P] -> ...",
+            "Sequentially putting members of aggregate A onto the stack,",
+            "executes P for each member of A.")]
         private void Step_()
         {
             new Validator("step")
@@ -228,6 +284,11 @@ namespace Xil
             }
         }
 
+        [Builtin(
+            "map",
+            "A [P] -> B",
+            "Executes P on each member of aggregate A,",
+            "collects results in sametype aggregate B.")]
         private void Map_()
         {
             new Validator("map")
@@ -251,6 +312,10 @@ namespace Xil
             this.Push(new Value.List(results.ToArray()));
         }
 
+        [Builtin(
+            "times",
+            "N [P] -> ...",
+            "N times executes P.")]
         private void Times_()
         {
             new Validator("times")
@@ -267,6 +332,13 @@ namespace Xil
             }
         }
 
+        [Builtin(
+            "infra",
+            "L1 [P] -> L2",
+            "Using list L1 as stack, executes P and returns a new list L2.",
+            "The first element of L1 is used as the top of the stack,",
+            "and after execution of P the top of the stack becomes the",
+            "first element of L2.")]
         private void Infra_()
         {
             new Validator("infra")
@@ -285,6 +357,10 @@ namespace Xil
             this.Push(l2);
         }
 
+        [Builtin(
+            "filter",
+            "A [B] -> A1",
+            "Uses test B to filter aggregate A producing sametype aggregate A1.")]
         private void Filter_()
         {
             new Validator("filter")
@@ -313,7 +389,10 @@ namespace Xil
             this.Push(new Value.List(results.ToArray()));
         }
 
-
+        [Builtin(
+            "some",
+            "A [B] -> X",
+            "Applies test B to members of aggregate A, X = true if some pass.")]
         private void Some_()
         {
             new Validator("some")
@@ -342,6 +421,10 @@ namespace Xil
             this.Push(result);
         }
 
+        [Builtin(
+            "all",
+            "A [B] -> X",
+            "Applies test B to members of aggregate A, X = true if all pass.")]
         private void All_()
         {
             new Validator("all")

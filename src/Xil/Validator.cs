@@ -255,7 +255,7 @@ namespace Xil
 
         public Validator ClrKindOnTop() =>
             this.AddRule(
-                xs => xs[0].Kind == ValueKind.ClrKind,
+                xs => xs[0].Kind.HasFlag(ValueKind.ClrKind),
                 "clrkind");
 
         public Validator ClrTypeOnTop() =>
